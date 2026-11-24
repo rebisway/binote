@@ -50,6 +50,7 @@ xcopy /E /I /Y /Q "$(ProjectDir)icons" "$(OutDir)icons" &gt;nul
 xcopy /E /I /Y /Q "$(ProjectDir)scripts" "$(OutDir)scripts" &gt;nul
 xcopy /E /I /Y /Q "$(ProjectDir)lexicon" "$(OutDir)lexicon" &gt;nul
 xcopy /E /I /Y /Q "$(ProjectDir)lang" "$(OutDir)lang" &gt;nul
+if exist "$(OutDir)grammar-engine" rmdir /S /Q "$(OutDir)grammar-engine"
 xcopy /E /I /Y /Q "$(SolutionDir)grammar-engine\grammar_engine" "$(OutDir)grammar-engine" &gt;nul
 xcopy /E /I /Y /Q "$(SolutionDir)typography-engine\profiles" "$(OutDir)typography" &gt;nul</Command>
     </PostBuildEvent>

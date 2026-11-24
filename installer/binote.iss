@@ -2,7 +2,7 @@
 ; The folder bin\Release must hold a Release build (see docs\BUILD.md).
 
 #define AppName "Binote"
-#define AppVersion "1.0.0"
+#define AppVersion "1.1.0"
 #define AppPublisher "Thomas Gourgnier"
 #define AppURL "https://www.rebisway.com"
 
@@ -44,7 +44,7 @@ Source: "..\bin\Release\icons\*"; DestDir: "{app}\icons"; Flags: ignoreversion r
 Source: "..\bin\Release\lang\*"; DestDir: "{app}\lang"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\bin\Release\lexicon\*"; DestDir: "{app}\lexicon"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\bin\Release\typography\*"; DestDir: "{app}\typography"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\bin\Release\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\bin\Release\scripts\*"; DestDir: "{app}\scripts"; Excludes: "__pycache__"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\bin\Release\grammar-engine\*"; DestDir: "{app}\grammar-engine"; Excludes: "__pycache__"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion

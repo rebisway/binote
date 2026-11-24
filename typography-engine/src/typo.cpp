@@ -105,6 +105,13 @@ struct TypoSet
     bool Has(char32_t c) const;
 };
 
+struct TypoFull
+{
+    char32_t    Plain;                  // The ASCII sign: , . ! ? : ; ( )
+    char32_t    Wide;                   // Its full-width form
+    bool        Opener;                 // An opening sign: it follows the text, not precedes it, so the next character is the one to look at
+};
+
 struct TypoProfile
 {
     std::string Name, Extends;
@@ -121,6 +128,8 @@ struct TypoProfile
     TypoSet     Closers;
     std::vector<Text32> Orphans;            // Short words which must not end a line: a no-break space follows them (Polish, Czech, Russian)
     char32_t    OrphanSpace;
+    bool        EllipsisDouble;         // Two ellipsis characters for three dots (Chinese, Japanese)
+    std::vector<TypoFull> Full;             // Full-width signs after East Asian text
     std::vector<std::pair<char32_t, char32_t> > Inverted;   // ? -> an inverted mark put at the start of the sentence (Spanish: ¿ ¡)
 
     TypoProfile()
@@ -130,6 +139,7 @@ struct TypoProfile
         AltClose = 0x201D;
         Apostrophe = Ellipsis = SpacedDash = 0;
         OrphanSpace = 0x00A0;
+        EllipsisDouble = false;
     }
 };
 
@@ -139,6 +149,10 @@ static const char32_t C_NBSP = 0x00A0, C_NNBSP = 0x202F;
 static bool IsLetter(char32_t c)
 {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= 0xC0 && c <= 0x24F && c != 0xD7 && c != 0xF7) || c == 0x153 || c == 0x152;
+}
+static bool IsCjk(char32_t c)
+{
+    return (c >= 0x3000 && c <= 0x30FF) || (c >= 0x3400 && c <= 0x4DBF) || (c >= 0x4E00 && c <= 0x9FFF) || (c >= 0xAC00 && c <= 0xD7AF) || (c >= 0xFF00 && c <= 0xFFEF);
 }
 static bool IsDigit(char32_t c)         { return c >= '0' && c <= '9'; }
 static bool IsSpace(char32_t c)         { return c == ' ' || c == '\t' || c == C_NBSP || c == C_NNBSP; }
@@ -250,7 +264,7 @@ TypoProfile* Typo::CreateProfile(const char* text, const TypoProfile* parent, st
     std::string& err = error ? *error : local_error;
     TypoProfile* p = parent ? new TypoProfile(*parent) : new TypoProfile();
     std::string section;
-    bool inverted_reset = false;
+    bool inverted_reset = false, full_reset = false;
     bool sign_section_reset = false;            // "space_before" of a profile replaces the table of its parent, it does not add to it
     const std::string source = text ? text : "";
     size_t pos = 0;
@@ -316,6 +330,32 @@ TypoProfile* Typo::CreateProfile(const char* text, const TypoProfile* parent, st
             ok = ParseSet(value, &p->PrevTyped, &err, key);
         else if (section == "context" && key == "closers")
             ok = ParseSet(value, &p->Closers, &err, key);
+        else if (section == "ellipsis" && key == "double")
+            p->EllipsisDouble = value == "true" || value == "yes" || value == "1";
+        else if (section == "fullwidth")
+        {
+            // ", = ，": the plain sign, its full-width form ("opener" after it for the signs which open something)
+            char32_t plain = 0, wide = 0;
+            const std::vector<std::string> items = Split(value);
+            if (!ParseChar(key, &plain) || items.empty() || !ParseChar(items[0], &wide))
+            {
+                err = "bad fullwidth entry";
+                ok = false;
+            }
+            else
+            {
+                if (!full_reset)
+                {
+                    p->Full.clear();
+                    full_reset = true;
+                }
+                TypoFull f;
+                f.Plain = plain;
+                f.Wide = wide;
+                f.Opener = items.size() > 1 && items[1] == "opener";
+                p->Full.push_back(f);
+            }
+        }
         else if (section == "orphans" && key == "words")
         {
             p->Orphans.clear();
@@ -404,6 +444,9 @@ bool Typo::WatchesChar(const TypoProfile* profile, unsigned int c)
             return true;
     if (c == ' ' && !profile->Orphans.empty())
         return true;
+    for (size_t i = 0; i < profile->Full.size(); i++)
+        if (profile->Full[i].Plain == c)
+            return true;
     return false;
 }
 
@@ -499,6 +542,8 @@ static Text32 FixSegment(const TypoProfile& p, const TypoOptions& options, const
         if (p.Ellipsis && c == '.' && i + 2 < n && in[i + 1] == '.' && in[i + 2] == '.' && (i + 3 >= n || in[i + 3] != '.') && (i == 0 || in[i - 1] != '.'))
         {
             s += p.Ellipsis;
+            if (p.EllipsisDouble)
+                s += p.Ellipsis;
             i += 2;
         }
         else if (p.Apostrophe && c == '\'' && i > 0 && i + 1 < n && IsLetter(in[i - 1]) && IsLetter(in[i + 1]))
@@ -602,6 +647,17 @@ static Text32 FixSegment(const TypoProfile& p, const TypoOptions& options, const
         for (size_t i = 1; i + 1 < o.size(); i++)
             if (o[i] == ' ' && IsWordChar(o[i + 1]) && OrphanEndsAt(p, o, i))
                 o[i] = p.OrphanSpace;
+    // Full-width signs after East Asian text
+    if (!p.Full.empty())
+        for (size_t i = 0; i < o.size(); i++)
+            for (size_t k = 0; k < p.Full.size(); k++)
+                if (o[i] == p.Full[k].Plain)
+                {
+                    const bool cjk = p.Full[k].Opener ? (i + 1 < o.size() && IsCjk(o[i + 1])) : (i > 0 && IsCjk(o[i - 1]));
+                    if (cjk)
+                        o[i] = p.Full[k].Wide;
+                    break;
+                }
     // The inverted marks at the start of the sentences
     if (!p.Inverted.empty())
         for (size_t i = 0; i < o.size(); i++)
@@ -635,7 +691,17 @@ static Text32 SimplifySegment(const TypoProfile& p, const TypoOptions&, const Te
         else if (c == 0x2018 || c == 0x2019 || c == 0x201A || c == 0x201B || (p.Apostrophe && c == p.Apostrophe))
             o += U'\'';
         else if (c == 0x2026 || (p.Ellipsis && c == p.Ellipsis))
+        {
             o += U"...";
+            if (p.EllipsisDouble && next == c)
+                i++;
+        }
+        else if (c != 0 && !p.Full.empty() && [&]() { for (size_t k = 0; k < p.Full.size(); k++) if (p.Full[k].Wide == c) return true; return false; }())
+        {
+            for (size_t k = 0; k < p.Full.size(); k++)
+                if (p.Full[k].Wide == c)
+                    o += p.Full[k].Plain;
+        }
         else if (c == C_NBSP || c == C_NNBSP)
         {
             bool drop = false;
@@ -825,6 +891,16 @@ TypoEdit Typo::OnTyped(const TypoProfile* profile, const TypoOptions& options, c
         r.Text = ToUtf8(p.Apostrophe);
         return r;
     }
+    if (c != '.' && !p.Full.empty())
+        for (size_t k = 0; k < p.Full.size(); k++)
+            if (p.Full[k].Plain == (char32_t)c && !p.Full[k].Opener && cps.size() > 1 && IsCjk(cps[1].cp))
+            {
+                r.Valid = true;
+                r.Start = end - 1;
+                r.Length = 1;
+                r.Text = ToUtf8(p.Full[k].Wide);
+                return r;
+            }
     if (c == '.')
     {
         if (p.Ellipsis && end >= 3 && before.compare(end - 3, 3, "...") == 0 && (end < 4 || before[end - 4] != '.'))
@@ -832,7 +908,7 @@ TypoEdit Typo::OnTyped(const TypoProfile* profile, const TypoOptions& options, c
             r.Valid = true;
             r.Start = end - 3;
             r.Length = 3;
-            r.Text = ToUtf8(p.Ellipsis);
+            r.Text = ToUtf8(p.Ellipsis) + (p.EllipsisDouble ? ToUtf8(p.Ellipsis) : std::string());
         }
         return r;
     }

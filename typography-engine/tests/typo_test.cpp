@@ -224,7 +224,7 @@ int main(int argc, char** argv)
         return 2;
     }
     TestProfiles();
-    for (const char* name : { "fr", "generic", "en", "es", "de", "it", "pt", "pl" })
+    for (const char* name : { "fr", "generic", "en", "es", "de", "it", "pt", "pl", "zh" })
         RunCases(argv[1], std::string(argv[2]) + "/" + name + ".txt");
     printf("%d checks, %d failures\n", g_checks, g_failures);
     return g_failures ? 1 : 0;

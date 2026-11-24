@@ -1,0 +1,11 @@
+profile: zh
+fix: 你好,世界. 真的? => 你好，世界。 真的？
+fix: 你好, hello. world => 你好， hello. world
+fix: 他说...好 => 他说……好
+fix: 价格(重要)吧 => 价格（重要）吧
+fix: 3.5 and a,b => 3.5 and a,b
+type: 你好,世界 => 你好，世界
+simp: 你好，世界。真的？ => 你好,世界.真的?
+simp: 他说……好 => 他说...好
+profile: ja
+fix: こんにちは,世界. => こんにちは、世界。

@@ -1,0 +1,13 @@
+# Japanese typography: full-width signs after Japanese text, ellipsis of two characters.
+
+[profile]
+name = Japanese
+extends = zh
+
+[fullwidth]
+, = 、
+. = 。
+! = ！
+? = ？
+) = ）
+( = （ opener

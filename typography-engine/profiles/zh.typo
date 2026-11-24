@@ -1,0 +1,25 @@
+# Chinese typography: full-width signs after Chinese text, ellipsis of two characters.
+
+[profile]
+name = Chinese
+
+[quotes]
+open = none
+close = none
+alt_open = “
+alt_close = ”
+
+[ellipsis]
+char = …
+double = true
+
+[fullwidth]
+# The plain sign = its full-width form, when it follows Chinese text ("opener": when it is followed by Chinese text)
+, = ，
+. = 。
+! = ！
+? = ？
+: = ：
+; = ；
+) = ）
+( = （ opener

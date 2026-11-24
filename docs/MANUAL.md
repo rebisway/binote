@@ -92,6 +92,10 @@ The shortcuts are in [Keyboard shortcuts](#keyboard-shortcuts).
 - **Tools > Save when changing chapter** saves the work by itself when you go to another chapter (otherwise Binote asks).
 - The language of the text (dictionary, typography, grammar) is set in **Tools > Language of the project text**, or with the language button at the right of the status bar. It is not the language of the interface (**View > Language**).
 
+  ![The language menu](images/language-menu.png)
+
+  Languages with several countries are submenus, named by country. **Other dictionaries** lists the ones of LibreOffice and of the system.
+
 ## Rewriting
 
 Type in the work. The original cannot be modified, except in the *Original* view (see below).
@@ -214,6 +218,8 @@ A **variant** of a language only holds what differs: `es_ar.py` (Argentine Spani
 The **Scripts** menu lists the scripts by category (*Refresh the list* reads the folders again, *Open the scripts folder* shows yours). A script works on the selection, a paragraph, a section, a file or the whole project: the *Apply to* choice is in its dialog box.
 
 Python is optional and is not installed with Binote. When it is missing, a window says so, with a button to [python.org/downloads](https://www.python.org/downloads/): at the first start, then once per session when you open the **Scripts** menu or switch the grammar checker on. Tick *Do not remind me again* to stop it. Install Python 3.12 or later with *Add python.exe to PATH* ticked, then restart Binote; without Python the grammar checker uses a smaller set of rules.
+
+![The Python notice](images/python-notice.png)
 
 ![A script dialog box](images/script-dialog.png)
 

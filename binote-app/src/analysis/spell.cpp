@@ -79,9 +79,28 @@ bool Spell::load(const std::string& code)
 	_personal.clear();
 	_ignored.clear();
 	_code = code;
+	// A code without a country ("en", "es") takes the dictionary of a country: the usual one, else the first found
+	std::string file = code;
+	if (code.find('_') == std::string::npos)
+	{
+		const std::vector<std::string> all = languages();
+		if (std::find(all.begin(), all.end(), code) == all.end())
+		{
+			static const char* const usual[][2] = { { "en", "en_US" }, { "es", "es_ES" }, { "pt", "pt_BR" }, { "de", "de_DE" }, { "it", "it_IT" } };
+			std::string chosen;
+			for (const auto& u : usual)
+				if (code == u[0] && std::find(all.begin(), all.end(), u[1]) != all.end())
+					chosen = u[1];
+			for (size_t i = 0; chosen.empty() && i < all.size(); i++)
+				if (all[i].compare(0, code.size() + 1, code + "_") == 0)
+					chosen = all[i];
+			if (!chosen.empty())
+				file = chosen;
+		}
+	}
 	for (const std::string& dir : dictionary_folders())
 	{
-		const std::string dic = util::combine(dir, code + ".dic"), aff = util::combine(dir, code + ".aff");
+		const std::string dic = util::combine(dir, file + ".dic"), aff = util::combine(dir, file + ".aff");
 		if (!util::exists(dic) || !util::exists(aff))
 			continue;
 		try

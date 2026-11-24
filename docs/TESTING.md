@@ -100,6 +100,12 @@ binote-app\build\binote.exe --script test.txt --width 1280 --height 800
 
 The images in `docs/images` are taken with `shot` on the sample project `docs/sample` (an excerpt of *Alice's Adventures in Wonderland*, public domain), with the interface in English. Open the window with its command (`problems`, `stats`, `history`...), `wait` a few frames, `shot`.
 
+Take them from a fresh copy of `docs/sample` each time (some scripts change the destination), with `APPDATA` pointing to an empty folder so that your preferences are not used or changed, at `--width 1600 --height 837`, and the project language set to `en_GB` in the copy (`"Language": "en_GB"` in its `binote.json`) so that the spelling is on.
+
+## Testing the typography engine
+
+`typography-engine/tests/typo_test.cpp` checks the profiles with the cases of `typography-engine/tests/cases/*.txt` (fixing, typing, the opposite conversion): `typo_test typography-engine/profiles typography-engine/tests/cases`, or `ctest` with CMake. It prints the number of checks and failures.
+
 ## Testing the components
 
 `imgui-md` and `imgui-prose` have a demo each (`demo/main.cpp`, built by their own CMake file with the option `IMGUI_MD_BUILD_DEMO` / `IMGUI_PROSE_BUILD_DEMO`): they are tested through their demos, not through Binote.

@@ -913,7 +913,7 @@ static float ImGuiMd_Flow(ImGuiMdFlow& f, int run_start, int run_count)
                 float piece_w = word_w;
                 if (word_w > f.WrapWidth && at_start && q > p)
                 {
-                    e = font->CalcWordWrapPositionA(f.Scale, s, q, ImMax(f.WrapWidth - x, size));
+                    e = font->CalcWordWrapPosition(size, s, q, ImMax(f.WrapWidth - x, size));	// size = LegacySize * Scale (Dear ImGui 1.92 takes the size, not the scale)
                     if (e <= s)
                         e = s + ImGuiMd_Utf8Len(s, q);
                     piece_w = font->CalcTextSizeA(size, FLT_MAX, 0.0f, s, e).x;

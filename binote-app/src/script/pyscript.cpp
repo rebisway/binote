@@ -140,6 +140,8 @@ namespace pyscript
 		if (g_failed)
 			return false;
 		g_failed = true;
+		if (std::getenv("BINOTE_NO_PYTHON"))
+			return fail("Python is disabled (BINOTE_NO_PYTHON)");	// for the tests of the case where Python is missing
 		const std::string delivered = delivered_folder();
 		if (delivered.empty())
 			return fail("Scripts folder not found (lib/textcore.py)");

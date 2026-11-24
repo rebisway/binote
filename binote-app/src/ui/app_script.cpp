@@ -413,11 +413,21 @@ void App::apply_script(const pyscript::Result& result)
 // Scripts menu: one menu per category, then the editor
 //-----------------------------------------------------------------------------
 
+// Python is optional: when it is missing, a notice with the link to python.org, once per session, unless the user asked not to see it
+void App::python_notice()
+{
+	if (_s.python_never || _python_notice_shown || pyscript::available())
+		return;
+	_python_notice_shown = true;
+	_open_python = true;
+}
+
 // Scripts menu: the scripts delivered with Binote, then those of the user, and the script editor
 void App::draw_script_menu()
 {
 	if (!ImGui::BeginMenu(TR("MENU_SCRIPTS")))
 		return;
+	python_notice();
 	if (!_scripts_loaded)
 	{
 		_scripts = pyscript::list(i18n::current());

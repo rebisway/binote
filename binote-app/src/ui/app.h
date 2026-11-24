@@ -434,6 +434,8 @@ private:
 	void pin_here();
 	void apply_pin(int src_para, int dst_para);
 	bool _open_pin = false, _pin_from_src = false;
+	bool _open_python = false, _python_notice_shown = false;		// notice: Python is missing
+	void python_notice();									// opens it once per session when Python is missing (unless the user asked not to)
 	int _pin_para = 1, _pin_value = 1;
 	void clear_pins();
 

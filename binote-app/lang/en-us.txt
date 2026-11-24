@@ -150,6 +150,11 @@ MENU_MODE_TEXT=Text
 MENU_LOG=Log
 LOG_CLEAR=Clear
 LOG_FILTER=Filter
+DLG_PYTHON_TITLE=Python is not installed
+DLG_PYTHON_TEXT=Binote works without Python, but Python 3.12 or later is needed for the scripts and for the full grammar checker (without it, a smaller set of rules is used).
+DLG_PYTHON_PATH=When installing, tick "Add python.exe to PATH", then restart Binote.
+DLG_PYTHON_OPEN=Open python.org/downloads
+DLG_PYTHON_NEVER=Do not remind me again
 BTN_CLOSE=Close
 
 MENU_OPEN_LOG_FOLDER=Open the log folder

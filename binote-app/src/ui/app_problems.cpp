@@ -40,6 +40,8 @@ void App::toggle_spell()
 void App::toggle_grammar()
 {
 	_s.grammar_check = !_s.grammar_check;
+	if (_s.grammar_check)
+		python_notice();
 	_s.save();
 	_problems_version = -1;
 	rebuild_spans();

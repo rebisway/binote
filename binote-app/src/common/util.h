@@ -82,6 +82,8 @@ namespace util
 		bool spell_check = true;
 		bool grammar_check = true;
 		std::string grammar_ignored;				// rules which are switched off, separated by commas
+		bool python_seen = false;					// the notice about Python was shown at the first start
+		bool python_never = false;					// the user does not want to be reminded that Python is missing
 		bool reopen_last = true;					// open the last project at start
 		int export_format = 0;						// PDF, Word, EPUB, HTML, Markdown
 		std::string export_author;

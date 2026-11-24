@@ -79,6 +79,13 @@ int App::highlight_para(const Pane* pane) const
 void App::frame()
 {
 	const double now = ImGui::GetTime();
+	if (!_s.python_seen && ImGui::GetFrameCount() > 2)
+	{
+		// First start: say that Python is needed for the scripts, if it is missing
+		_s.python_seen = true;
+		_s.save();
+		python_notice();
+	}
 	if (!_theme_set || _applied_dark != _s.dark)
 	{
 		const bool first = !_theme_set;
@@ -1185,6 +1192,26 @@ void App::draw_dialogs()
 	if (_open_dest) { ImGui::OpenPopup(TR("DLG_DEST_TITLE")); _open_dest = false; }
 
 	const ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+	if (_open_python) { ImGui::OpenPopup(TR("DLG_PYTHON_TITLE")); _open_python = false; }
+	ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	if (ImGui::BeginPopupModal(TR("DLG_PYTHON_TITLE"), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 34.0f);
+		ImGui::TextUnformatted(TR("DLG_PYTHON_TEXT"));
+		ImGui::Spacing();
+		ImGui::TextUnformatted(TR("DLG_PYTHON_PATH"));
+		ImGui::PopTextWrapPos();
+		ImGui::Spacing();
+		if (ImGui::Button(TR("DLG_PYTHON_OPEN")))
+			dialog::open_external("https://www.python.org/downloads/");
+		ImGui::Spacing();
+		if (ImGui::Checkbox(TR("DLG_PYTHON_NEVER"), &_s.python_never))
+			_s.save();
+		ImGui::Separator();
+		if (ImGui::Button(TR("BTN_CLOSE"), ImVec2(120.0f, 0.0f)) || ImGui::IsKeyPressed(ImGuiKey_Escape))
+			ImGui::CloseCurrentPopup();
+		ImGui::EndPopup();
+	}
 	if (_open_pin) { ImGui::OpenPopup(TR("DLG_PIN_TITLE")); _open_pin = false; }
 	ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 	if (ImGui::BeginPopupModal(TR("DLG_PIN_TITLE"), nullptr, ImGuiWindowFlags_AlwaysAutoResize))

@@ -77,6 +77,7 @@ An unknown command is reported. Output goes to the standard output.
 
 - **Never write into `exemples/`.** The sample project `exemples/la_seizieme_figure` (18 chapters, about 600 KB, with accents, « », no-break spaces) is read-only: copy it elsewhere to test saves.
 - **Never run `plang` on the repository**: it rewrites `binote.json`. Work on a copy of `docs/sample`.
+- To test the case where Python is missing, set the environment variable `BINOTE_NO_PYTHON=1` (and `APPDATA` to an empty folder, so that the preferences are not changed): the notice with the link to python.org opens at the first start.
 - The application keeps its preferences in `%AppData%\Binote\settings.ini`; tests must not change it on purpose.
 
 ### Example

@@ -1,3 +1,9 @@
+// imgui_md - www.rebisway.com - contact@rebisway.com
+// Copyright (c) 2026 Thomas Gourgnier
+// SPDX-License-Identifier: MIT
+//
+// Licensed under the MIT license: see the LICENSE file in the folder of this component.
+
 // imgui_md_diagram : small diagram renderer for Dear ImGui (MIT license)
 
 // Index of this file:

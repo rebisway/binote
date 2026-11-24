@@ -1,4 +1,10 @@
-﻿// imgui_md : Markdown rendering for Dear ImGui (MIT license)
+﻿// imgui_md - www.rebisway.com - contact@rebisway.com
+// Copyright (c) 2026 Thomas Gourgnier
+// SPDX-License-Identifier: MIT
+//
+// Licensed under the MIT license: see the LICENSE file in the folder of this component.
+
+// imgui_md : Markdown rendering for Dear ImGui (MIT license)
 // Dependencies: Dear ImGui, md4c.
 
 // Index of this file:

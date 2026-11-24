@@ -1,4 +1,10 @@
-﻿// imgui_md demo : GLFW + OpenGL3 window showing a Markdown file.
+﻿// imgui_md - www.rebisway.com - contact@rebisway.com
+// Copyright (c) 2026 Thomas Gourgnier
+// SPDX-License-Identifier: MIT
+//
+// Licensed under the MIT license: see the LICENSE file in the folder of this component.
+
+// imgui_md demo : GLFW + OpenGL3 window showing a Markdown file.
 // Usage: imgui_md_demo [file.md] [--shot out.png] [--frames N] [--line N] [--width W --height H]
 
 #include "imgui.h"

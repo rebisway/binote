@@ -1,3 +1,9 @@
+// imgui_prose - www.rebisway.com - contact@rebisway.com
+// Copyright (c) 2026 Thomas Gourgnier
+// SPDX-License-Identifier: MIT
+//
+// Licensed under the MIT license: see the LICENSE file in the folder of this component.
+
 // imgui_prose demo: source (read-only) and destination editors side by side, scroll synchronisation, decorations.
 // Usage: imgui_prose_demo [file.md] [--width W] [--height H] [--script file]
 // Script (one command per line, '#' starts a comment): click X Y [2|3], move X Y, drag X1 Y1 X2 Y2, type TEXT,

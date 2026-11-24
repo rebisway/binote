@@ -1,6 +1,6 @@
 # imgui-md
 
-Markdown renderer for Dear ImGui. MIT. Depends only on Dear ImGui and md4c (vendored in `third/md4c`).
+Markdown renderer for Dear ImGui. MIT ([LICENSE](LICENSE)). Depends only on Dear ImGui and md4c (vendored in `third/md4c`).
 
 ## Status
 

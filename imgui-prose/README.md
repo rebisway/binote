@@ -1,6 +1,6 @@
 # imgui-prose
 
-Multiline text editor for prose, for Dear ImGui. MIT. Depends only on Dear ImGui.
+Multiline text editor for prose, for Dear ImGui. MIT ([LICENSE](LICENSE)). Depends only on Dear ImGui.
 
 ## Status
 

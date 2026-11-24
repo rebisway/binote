@@ -1,3 +1,9 @@
+// imgui_prose - www.rebisway.com - contact@rebisway.com
+// Copyright (c) 2026 Thomas Gourgnier
+// SPDX-License-Identifier: MIT
+//
+// Licensed under the MIT license: see the LICENSE file in the folder of this component.
+
 // imgui_prose : multiline text editor for prose, for Dear ImGui (MIT license)
 
 // Index of this file:

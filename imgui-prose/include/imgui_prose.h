@@ -1,4 +1,10 @@
-﻿// imgui_prose : multiline text editor for prose, for Dear ImGui (MIT license)
+﻿// imgui_prose - www.rebisway.com - contact@rebisway.com
+// Copyright (c) 2026 Thomas Gourgnier
+// SPDX-License-Identifier: MIT
+//
+// Licensed under the MIT license: see the LICENSE file in the folder of this component.
+
+// imgui_prose : multiline text editor for prose, for Dear ImGui (MIT license)
 // Word wrap, line numbers, paragraph numbers, current paragraph highlight, decorations (backgrounds, squiggles),
 // selection, undo/redo, UTF-8. A paragraph is a non-empty line. Dependencies: Dear ImGui only.
 //

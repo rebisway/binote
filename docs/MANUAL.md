@@ -99,6 +99,20 @@ Type in the work. The original cannot be modified, except in the *Original* view
 - **Go to** (Ctrl+G, **Edit** menu) a line or a paragraph. **Ctrl+Down / Ctrl+Up** move to the next and previous paragraph. **F8 / Shift+F8** jump to the next and previous difference.
 - **Reset the chapter from the source** starts the rewrite again.
 - **Automatic typography** (**Tools** menu): while typing, quotes become « », the no-break spaces are added before `; : ! ?`, `'` becomes ’ and `...` becomes … (rules of the French profile). Each language has a **profile** (`typography` folder beside the program; yours go in `%AppData%\Binote\typography`, see [typography-engine](../typography-engine/README.md)); a language without a profile only has the curly quotes. **F7** corrects the current paragraph, **Shift+F7** the whole chapter. The opposite exists in the **Tools** menu (**Plain quotes and spaces** in the paragraph or the chapter): every quotation mark becomes `"`, every apostrophe `'`, the ellipsis three dots, and the typographic spaces before the signs and inside the quotation marks are removed (useful before an export to a tool which does not like them). The key used for the double quote is chosen in the preferences; **Edit > Insert guillemets « »** inserts a pair around the selection.
+  Profiles shipped with Binote:
+
+  | Language | Quotation marks | Other rules |
+  |---|---|---|
+  | French | « » with narrow no-break spaces | no-break space before `; : ! ?`, ’, … |
+  | English | “ ” | ’, … |
+  | Spanish | « » | ¿ ¡ added at the start of the sentence, ’, … |
+  | German, Swiss German | „ “, « » | ’, … |
+  | Italian | « » | ’, … |
+  | Portuguese, Portuguese (Portugal) | “ ”, « » | ’, … |
+  | Polish, Czech, Russian | „ ”, „ “, « » | no-break space after the one-letter words, … |
+  | Chinese, Japanese | not converted | full-width signs after Chinese or Japanese text, …… |
+
+  To change a rule or add a language, copy a profile from the `typography` folder to `%AppData%\Binote\typography`, rename it with the code of the language (`nl.typo`) and edit it: the format is described in the [README of the engine](../typography-engine/README.md). A profile in your folder replaces the one shipped. The project language `fr-CA` uses `fr-ca.typo` if there is one, else `fr.typo`.
 - Spaces which look alike are shown if **Show no-break spaces** is on (**View** menu). Insert them with **Ctrl+Shift+Space** (no-break) and **Ctrl+Alt+Space** (narrow no-break), or with the character map.
 - **Show invisible characters** (**View** menu) marks every invisible typographic character except the normal space, with one colour per kind. The submenu **Colour code of the invisible characters**, just below, shows the key.
 

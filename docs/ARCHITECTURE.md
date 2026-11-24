@@ -120,7 +120,7 @@ sequenceDiagram
 ```
 
 - **Scripts** (`scripts/` beside the executable, and `%AppData%\Binote\scripts`): a script is a Python class `Textscript`; the object `Textcore` (`scripts/lib/textcore.py`) gives it the selection, a paragraph, a section, a file or the project. The contract is in `binote-app/scripts/README_scripts.txt`.
-- **Grammar engine**: the build copies `grammar-engine/grammar_engine` beside the executable. The offsets the bridge returns are UTF-8 bytes, which the application indexes directly. When Python or the engine is missing, `analysis/grammar.*` is used. The reference of the engine is [../grammar-engine/docs/API.en.md](../grammar-engine/docs/API.en.md).
+- **Grammar engine**: the build copies the package `grammar-engine/grammar_engine` to `grammar-engine/` beside the executable. The offsets the bridge returns are UTF-8 bytes, which the application indexes directly. When Python or the engine is missing, `analysis/grammar.*` is used. The reference of the engine is [../grammar-engine/docs/API.en.md](../grammar-engine/docs/API.en.md).
 
 ## Cache and state
 

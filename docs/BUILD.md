@@ -60,7 +60,7 @@ At every build (also when only a resource changed) the folders below are copied 
 | `scripts/` | the delivered Python scripts and their library |
 | `lexicon/` | the lexicon of the C++ grammar checker |
 | `lang/` | the interface languages |
-| `grammar-engine/grammar_engine/` | the Python grammar engine, copied from `../grammar-engine` |
+| `grammar-engine/` | the Python grammar engine (the package itself), copied from `../grammar-engine/grammar_engine` |
 
 The dictionaries are also searched in `%AppData%\Binote\dict` and in the extensions of LibreOffice.
 

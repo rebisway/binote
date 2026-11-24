@@ -49,7 +49,7 @@ xcopy /E /I /Y /Q "$(ProjectDir)icons" "$(OutDir)icons" &gt;nul
 xcopy /E /I /Y /Q "$(ProjectDir)scripts" "$(OutDir)scripts" &gt;nul
 xcopy /E /I /Y /Q "$(ProjectDir)lexicon" "$(OutDir)lexicon" &gt;nul
 xcopy /E /I /Y /Q "$(ProjectDir)lang" "$(OutDir)lang" &gt;nul
-xcopy /E /I /Y /Q "$(SolutionDir)grammar-engine\grammar_engine" "$(OutDir)grammar-engine\grammar_engine" &gt;nul</Command>
+xcopy /E /I /Y /Q "$(SolutionDir)grammar-engine\grammar_engine" "$(OutDir)grammar-engine" &gt;nul</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'"><Link><SubSystem>Console</SubSystem></Link></ItemDefinitionGroup>

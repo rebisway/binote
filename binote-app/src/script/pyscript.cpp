@@ -226,13 +226,24 @@ namespace pyscript
 		return PyBool_FromLong(ok ? 1 : 0);
 	}
 
-	// The grammar-engine folder: beside the executable, else up the tree
-	static std::string engine_folder()
+	// The grammar-engine folder: beside the executable (the package itself, flat), else up the tree (the source tree of the repository,
+	// which holds the package in a subfolder). flat tells which one it is.
+	static std::string engine_folder(bool* flat)
 	{
 		const std::string app = util::application_path();
 		for (const std::string& c : { util::combine(app, "grammar-engine"), util::combine(app, "../grammar-engine"), util::combine(app, "../../grammar-engine") })
-			if (util::exists(util::combine(util::combine(c, "grammar_engine"), "bridge.py")))
+		{
+			if (util::exists(util::combine(c, "bridge.py")))
+			{
+				*flat = true;
 				return c;
+			}
+			if (util::exists(util::combine(util::combine(c, "grammar_engine"), "bridge.py")))
+			{
+				*flat = false;
+				return c;
+			}
+		}
 		return "";
 	}
 
@@ -245,13 +256,42 @@ namespace pyscript
 		if (tried || !initialize())
 			return false;
 		tried = true;
-		const std::string folder = engine_folder();
+		bool flat = false;
+		const std::string folder = engine_folder(&flat);
 		if (folder.empty())
 			return false;
-		PyObject* path = PySys_GetObject("path");
-		PyObject* s = PyUnicode_FromString(folder.c_str());
-		PyList_Insert(path, 0, s);
-		Py_XDECREF(s);
+		if (flat)
+		{
+			// The folder is the package: load it under its real name (a file named __init__.py makes a package spec)
+			bool loaded = false;
+			PyObject* util = PyImport_ImportModule("importlib.util");
+			PyObject* modules = PyImport_GetModuleDict();
+			PyObject* spec = util ? PyObject_CallMethod(util, "spec_from_file_location", "ss", "grammar_engine", util::combine(folder, "__init__.py").c_str()) : nullptr;
+			PyObject* module = spec ? PyObject_CallMethod(util, "module_from_spec", "O", spec) : nullptr;
+			if (module && PyDict_SetItemString(modules, "grammar_engine", module) == 0)
+			{
+				PyObject* loader = PyObject_GetAttrString(spec, "loader");
+				PyObject* r = loader ? PyObject_CallMethod(loader, "exec_module", "O", module) : nullptr;
+				loaded = r != nullptr;
+				Py_XDECREF(r);
+				Py_XDECREF(loader);
+			}
+			Py_XDECREF(module);
+			Py_XDECREF(spec);
+			Py_XDECREF(util);
+			if (!loaded)
+			{
+				PyErr_Print();
+				PyErr_Clear();
+				return fail("grammar_engine cannot be loaded");
+			}
+		}		else
+		{
+			PyObject* path = PySys_GetObject("path");
+			PyObject* s = PyUnicode_FromString(folder.c_str());
+			PyList_Insert(path, 0, s);
+			Py_XDECREF(s);
+		}
 		g_bridge = PyImport_ImportModule("grammar_engine.bridge");
 		if (!g_bridge)
 		{

@@ -96,5 +96,5 @@ add_custom_target(binote_resources ALL
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/scripts $<TARGET_FILE_DIR:binote>/scripts
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/lexicon $<TARGET_FILE_DIR:binote>/lexicon
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/lang $<TARGET_FILE_DIR:binote>/lang
-	COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/../grammar-engine/grammar_engine $<TARGET_FILE_DIR:binote>/grammar-engine/grammar_engine)
+	COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/../grammar-engine/grammar_engine $<TARGET_FILE_DIR:binote>/grammar-engine)
 add_dependencies(binote_resources binote)

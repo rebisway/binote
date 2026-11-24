@@ -11,16 +11,16 @@
 
 Binote is built and tested on Windows. The CMake file has a branch for other systems (Python development files, no Windows libraries) but the interface code and the link line of the third party libraries are written for Windows; Linux is not done.
 
-## The third party libraries: `BINOTE_THIRD_DIR`
+## The third party libraries
 
-Dear ImGui, GLFW, the Python headers and ImGuiColorTextEdit are not in the repository. They are read from one folder, which CMake calls `BINOTE_THIRD_DIR` and the Visual Studio project `ThirdPartyDir`. By default it is `../../openpostpro/openpostpro` relative to `binote-app` (a folder shared with another project of the same author). The files Binote reads from it:
+Dear ImGui and ImGuiColorTextEdit are in the repository, in `third/`: `third/imgui-1.92.1` (Dear ImGui and its GLFW and OpenGL3 backends) and `third/ImGuiColorTextEdit` (`TextEditor.cpp` and its header, the editor of the scripts). They keep their own licenses.
+
+GLFW and the Python headers are not in the repository. They are read from one folder, which CMake calls `BINOTE_THIRD_DIR` and the Visual Studio project `ThirdPartyDir`. By default it is `../../openpostpro/openpostpro` relative to `binote-app` (a folder shared with another project of the same author). The files Binote reads from it:
 
 | Path in the folder | Content |
 |---|---|
-| `src/third/IMGUI/` | Dear ImGui 1.90.1 (`imgui*.cpp`, `backends/imgui_impl_glfw.cpp`, `backends/imgui_impl_opengl3.cpp`) |
 | `src/third/GLFW/` | the GLFW headers |
 | `lib/glfw/glfw3.lib` | the GLFW library |
-| `src/third/IMGUI_third/ImGuiColorTextEdit/` | `TextEditor.cpp` and its header (the editor of the scripts) |
 | `src/third/python/313/` | the Python headers (stable ABI, `Py_LIMITED_API` 3.12) |
 | `lib/python/python3.lib` | the import library of `python3.dll` (Windows) |
 

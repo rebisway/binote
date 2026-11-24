@@ -4,6 +4,7 @@ Binote is made to rewrite a text paragraph by paragraph, in a **dual view** (the
 
 - [The window](#the-window)
 - [Single view or dual view](#single-view-or-dual-view)
+- [The toolbar and the menus](#the-toolbar-and-the-menus)
 - [Opening a text](#opening-a-text)
 - [Rewriting](#rewriting)
 - [Find and replace](#find-and-replace)
@@ -48,21 +49,55 @@ Everything else works in any of the three: the outline and the chapters, the lin
 
 To write a text from nothing, open an empty or short file and choose *Work*: the destination is saved in the `dst` folder beside it, as usual.
 
+## The toolbar and the menus
+
+### The toolbar
+
+From left to right (each button shows its name when the mouse stays on it):
+
+| Button | Does |
+| --- | --- |
+| Open, Folder, Save | open a file, open a folder of chapters, save the work (Ctrl+O, Ctrl+Shift+O, Ctrl+S) |
+| Wrap, Line no., No. ¶ | word wrap, line numbers, paragraph numbers |
+| Differences, Sync | colour the differences with the original; scroll both panes together |
+| Tree | show or hide the project tree (F9) |
+| View mode (combo box) | *Original*, *Work* or *Dual view* |
+| Dark | light or dark theme (Ctrl+T) |
+| Chapter (combo box) | the heading where the caret is; choose another one to go there |
+| Go to... | go to a line or a paragraph (Ctrl+G) |
+| Contents | the table of contents of the project |
+| Change history | the saved versions of the file (Ctrl+H) |
+
+### The menus
+
+| Menu | Items |
+| --- | --- |
+| **File** | Open a file, Open a folder, Recent files (and *Clear the list*), Save the destination, Versions (Git / SVN), Export, Save the destination as, Merge files, Reset the chapter from the source, Preferences, Destination folder, Quit |
+| **Edit** | Undo, Redo; Find, Next match, Find in all chapters, Go to line / paragraph, Next / Previous paragraph, Next / Previous difference; Character map, Align with a paragraph of the other pane, Remove the alignments of the file, Note on the paragraph, List of the notes; Insert a no-break space, a narrow no-break space, guillemets « » |
+| **View** | Word wrap, Line numbers, Paragraph numbers, Mark the differences, Synchronize source / destination, Align the paragraphs, Show no-break spaces, Show invisible characters; Project tree, Reading: original only, Destination only, Log, Open the log folder, Dark theme, Monospaced font in the editors; Current paragraph highlight, Highlight color, Language, Zoom in, Zoom out |
+| **Mode** | Text or Markdown: how the file is read (Markdown headings and the preview, or plain text) |
+| **Tools** | Statistics, Style analysis, Generate the table of contents, Proper names of the project, Change history, Add a version to the history; Language of the project text, Grammar checker, List of the problems, Switch the ignored rules on again, Spell checker, Automatic typography while typing, Fix the typography of the paragraph / of the chapter; Save when changing chapter |
+| **Scripts** | the scripts by category, Edit the scripts, Refresh the list, Open the scripts folder |
+| **Help** | About Binote (the version, the licence, the components, the Python which was found) |
+
+The shortcuts are in [Keyboard shortcuts](#keyboard-shortcuts).
+
 ## Opening a text
 
-- **File > Open a file** (Ctrl+O): a `.md`, `.markdown` or `.txt` file. The destination is a file named after the source in a `dst` folder, created at the first save.
+- **File > Open a file** (Ctrl+O): a `.md`, `.markdown` or `.txt` file. The destination is a file named after the source in a `dst` folder, created at the first save. **File > Recent files** lists the last ones, with their destination as a tip.
 - **File > Open a folder** (Ctrl+Shift+O): a multi-chapter project, one file per chapter. The first time, Binote asks for the destination folder and writes a `binote.json` file. The chapters can be reordered with the arrows of the tree.
 - A file given by the system (double click, *Open with*) opens as chosen in the preferences: reading, preview or normal editing.
-- **File > Merge files** writes all the chapters in one file.
-- The language of the text (dictionary, typography) is set in **Tools > Language of the project text**. It is not the language of the interface (**Mode > Language**).
+- **File > Merge files** writes all the chapters in one file. **File > Destination folder** changes where the work is written; **File > Save the destination as** saves a copy under another name.
+- **Tools > Save when changing chapter** saves the work by itself when you go to another chapter (otherwise Binote asks).
+- The language of the text (dictionary, typography, grammar) is set in **Tools > Language of the project text**, or with the language button at the right of the status bar. It is not the language of the interface (**View > Language**).
 
 ## Rewriting
 
 Type in the work. The original cannot be modified, except in the *Original* view (see below).
 
-- **Go to** (Ctrl+G) a line or a paragraph. **Ctrl+Down / Ctrl+Up** move to the next and previous paragraph. **F8 / Shift+F8** jump to the next and previous difference.
+- **Go to** (Ctrl+G, **Edit** menu) a line or a paragraph. **Ctrl+Down / Ctrl+Up** move to the next and previous paragraph. **F8 / Shift+F8** jump to the next and previous difference.
 - **Reset the chapter from the source** starts the rewrite again.
-- **Automatic typography** (French): while typing, quotes become « », the no-break spaces are added before `; : ! ?`, `'` becomes ’ and `...` becomes …. **F7** corrects the current paragraph, **Shift+F7** the whole chapter.
+- **Automatic typography** (French, **Tools** menu): while typing, quotes become « », the no-break spaces are added before `; : ! ?`, `'` becomes ’ and `...` becomes …. **F7** corrects the current paragraph, **Shift+F7** the whole chapter. The key used for the double quote is chosen in the preferences; **Edit > Insert guillemets « »** inserts a pair around the selection.
 - Spaces which look alike are shown if **Show no-break spaces** is on (**View** menu). Insert them with **Ctrl+Shift+Space** (no-break) and **Ctrl+Alt+Space** (narrow no-break), or with the character map.
 - **Show invisible characters** (**View** menu) marks every invisible typographic character except the normal space, with one colour per kind. The submenu **Colour code of the invisible characters**, just below, shows the key.
 
@@ -78,8 +113,8 @@ Type in the work. The original cannot be modified, except in the *Original* view
   | purple | soft hyphen (U+00AD) |
   | red | direction marks, line and paragraph separators, tab |
 
-  Use it to find a space which looks right but is not the one you want (a no-break space where a normal one is needed, a zero-width character pasted from a web page).
-- **Align with a paragraph of the other pane** (Ctrl+Alt+A): when the program cannot tell which paragraph faces which, declare it. The alignments are kept in `binote.align`.
+  Use it to find a space which looks right but is not the one you want (a no-break space where a normal one is needed, a zero-width character pasted from a web page). The colours can be changed in **Preferences > Colours**.
+- **Align with a paragraph of the other pane** (Ctrl+Alt+A): when the program cannot tell which paragraph faces which, declare it. The alignments are kept in `binote.align`; **Edit > Remove the alignments of the file** forgets them. **View > Align the paragraphs** adds empty lines, which cannot be edited, where a paragraph exists on one side only, so that the paragraphs stay facing each other.
 - **Original view** (Ctrl+R, or the combo box) shows the original alone. Its **Edit** check box allows correcting it in place. **Work** hides the original.
 - **Preview**: the *Preview* check box of a pane shows the rendered Markdown, with images and diagrams. *Edit* goes back.
 
@@ -101,15 +136,19 @@ A relative address is looked for beside the file of the pane, then beside the ot
 
 ![Reading mode](images/reading-mode.png)
 
+### Table of contents
+
+The **Contents** button of the toolbar (or **Tools > Generate the table of contents**) builds the list of the headings of the project, with the chapters when there are several. In the window: **Copy** puts it in the clipboard, **Insert in the destination (caret)** writes it in the text, and, for a project of several chapters, **Write SOMMAIRE.md in the destination** writes it in a file of the destination folder.
+
 ### Character map
 
-**Tools > Character map** (Ctrl+Shift+U): spaces and invisible characters, punctuation, letters, symbols, by group or by code. A click inserts the character at the caret of the destination, or in the find box if it has the focus.
+**Edit > Character map** (Ctrl+Shift+U): spaces and invisible characters, punctuation, letters, symbols, by group. A click inserts the character at the caret of the destination, or in the find box if it has the focus. The box *U+00A0* takes the code of any character (*Insert the code*), the recent characters are kept, and the list can be shown with any font of the system (the glyphs which the font lacks are dimmed).
 
 ![Character map](images/character-map.png)
 
 ## Find and replace
 
-**Ctrl+F** opens the search window; **F3** and **Shift+F3** go to the next and previous match. **Ctrl+Shift+F** searches all the chapters.
+**Ctrl+F** opens the search window; **F3** and **Shift+F3** go to the next and previous match. The search is made in the pane which has the focus (the window tells which, and how many matches there are). **Ctrl+Shift+F** (or the *All chapters* box) searches all the chapters and lists the results.
 
 ![Find and replace](images/find-replace.png)
 
@@ -121,7 +160,8 @@ A relative address is looked for beside the file of the pane, then beside the ot
 
 - **Ctrl+F7** switches the spell checker (Hunspell) on and off, **Ctrl+F8** the grammar checker; the **Ab** and **Gr** buttons at the right of the status bar do the same. Mistakes are underlined in the work: red for spelling, blue for grammar.
 - A **right click** on an underlined passage gives the suggestions, *Add to dictionary*, *Ignore*, and for grammar *Ignore this rule*.
-- **Ctrl+F9** opens the list of the problems.
+- **Ctrl+F9** opens the list of the problems (**Tools > List of the problems**; its *Spelling* and *Grammar* boxes choose what is listed).
+- *Ignore this rule* is remembered; **Tools > Switch the ignored rules on again** forgets what was ignored.
 
 ![Spelling and grammar problems](images/problems.png)
 
@@ -152,11 +192,11 @@ A **variant** of a language only holds what differs: `es_ar.py` (Argentine Spani
 - **Detail of the indication** gives the contribution of each characteristic.
 - **Colors** marks the passages in the work (or the original): stock phrases, connectors, close repetitions, repeated sequences, identical sentence openings, long sentences, redundant paragraphs, constructions, parallel structures, breaks of style. The stronger the colour, the more it weighs.
 - **Advice** says what to change; **Measures** lists the figures: sentence length and its regularity, vocabulary diversity, hapax, entropy, readability, passive voice...
-- Two more pages compare the source with the destination and show the evolution of the indication over the saved versions.
+- Two more pages compare the original with the work (*Analyze both texts*: indication, words, length and regularity of the sentences, vocabulary diversity, connectors and stock phrases per 1000 words, long sentences, words which the previous word lets you guess) and show the **evolution of the indication** over the saved versions (*Analyze the history of the file*).
 
 ## Python scripts
 
-The **Scripts** menu lists the scripts by category. A script works on the selection, a paragraph, a section, a file or the whole project: the *Apply to* choice is in its dialog box.
+The **Scripts** menu lists the scripts by category (*Refresh the list* reads the folders again, *Open the scripts folder* shows yours). A script works on the selection, a paragraph, a section, a file or the whole project: the *Apply to* choice is in its dialog box.
 
 ![A script dialog box](images/script-dialog.png)
 
@@ -184,7 +224,7 @@ Edit, **Check** the syntax, **Test** on the current text, **New** and **Duplicat
 
 ### History
 
-Each save keeps a version of the destination (and **Add a version to the history** adds one by hand). **File > Change history** (Ctrl+H) shows the differences between a chosen version (red) and the current text (green); **Restore this version** brings it back, **Delete** removes it.
+Each save keeps a version of the destination (**Tools > Add a version to the history** adds one by hand, and a preference saves one automatically every 90 seconds). **Tools > Change history** (Ctrl+H, or the last button of the toolbar) shows the differences between a chosen version (red) and the current text (green); **Restore this version** brings it back, **Delete** removes it, and *Differences only* shows only the lines which changed.
 
 ![Change history](images/history.png)
 
@@ -202,30 +242,46 @@ Each save keeps a version of the destination (and **Add a version to the history
 
 ### Statistics and objectives
 
-**Tools > Statistics** compares source and destination (words, characters, paragraphs, reading time) and counts the words of every chapter. **Goals** sets an objective in words per chapter and for the project; the status bar shows the progress.
+**Tools > Statistics** compares original and work (words, characters with and without spaces, paragraphs, lines, reading time at 230 words per minute, and the change) and, with *Count the words of the whole project*, counts the words of every chapter. **Goals** sets an objective in words per chapter and for the project; the status bar shows the progress.
 
 ![Statistics](images/statistics.png)
 
 ## Versions (Git and Subversion)
 
-**Tools > Versions** detects a Git or Subversion working folder (the commands `git` or `svn` must be installed) and shows the changed files, with commit, update (pull), push, the log and the differences of a file. A folder without a repository can be initialized with Git.
+**File > Versions (Git / SVN)** detects a Git or Subversion working folder (the commands `git` or `svn` must be installed) and shows its branch and the changed files. The buttons: *Refresh*; *Update (pull / update)*; *Push*; *History of the file* and *Differences of the file* for the chapter which is open (*Update* saves the work first and reloads the chapter afterwards); and, below, a *Revision message* with *Commit*. A folder without a repository can be initialized with *Create a Git repository here*.
 
 ## Export
 
-**Tools > Export** writes the destination (or the source) of all the chapters in one file.
+**File > Export** writes the destination of all the chapters in one file (tick *Export the original (source) instead of the destination* for the original).
 
 ![Export](images/export.png)
 
-Formats: **PDF**, **Word** (.docx), **EPUB 3**, **HTML**, **Markdown** (one file). Options: title, author, title page, a page break at each chapter. Headings, emphasis, lists, quotes and code are kept. No external program is needed.
+Formats: **PDF**, **Word** (.docx), **EPUB 3**, **HTML**, **Markdown** (one file). Options: *Title*, *Author*, *Title page*, *Each chapter starts on a new page*, and the *File* to write; *Open the folder* shows the result. Headings, emphasis, lists, quotes and code are kept. No external program is needed.
 
 ## Display and preferences
 
 ![Preferences](images/preferences.png)
 
-- **Preferences**: open the last project at start, automatic versions, the key used for double quotes (« » with narrow no-break spaces, straight, or English curly), how the files opened by the system behave, fonts and sizes (Ctrl++ and Ctrl+- zoom the editors), and the association of `.md` and `.txt` files with Binote.
-- **Mode**: Markdown or text, word wrap (Alt+Z), line and paragraph numbers, highlight of the current paragraph, synchronized scrolling, marking of the differences.
-- **Log** (Ctrl+L): the log of the application, for the errors of the scripts.
-- **Mode > Language**: English, French or Spanish.
+**File > Preferences** has two tabs.
+
+**General**
+- *Open the last project at start*.
+- *Automatically save a version every 90 s* (the history).
+- *Quotation marks typed with the " key*: French guillemets « » (with narrow no-break spaces), straight quotes (no replacement) or English curly quotes.
+- *File opened from the system* (double click, *Open with*): read only as the text of the original, read only as the rendered Markdown, or normal editing.
+- The size of the interface font and of the editor font, and the fonts themselves (interface, editor, monospaced, and the font for Chinese, Japanese and Korean: automatic, none, or one of the system).
+- *Offer Binote for .md and .markdown files* adds Binote to the *Open with* list of the system.
+
+**Colours**
+- The *highlight colour of the current paragraph*: green, yellow, blue, pink, orange, or a custom one (four colours: background and text, light and dark theme).
+- The *markers of the invisible characters*: one colour (with transparency) for each of the seven kinds of the colour key.
+- *Restore the default colours*.
+
+**View menu**: word wrap (Alt+Z), line and paragraph numbers, mark the differences, synchronized scrolling, the ghost lines of the aligned paragraphs, the markers of the spaces and of the invisible characters, the project tree (F9), the Original and Work views, the log (Ctrl+L) and its folder, the dark theme (Ctrl+T), a monospaced font in the editors, the highlight of the current paragraph (*None*, *Background*, *Text* or *Background + text*) and its colour, the language of the interface (English, French or Spanish), and the zoom (Ctrl++ and Ctrl+-).
+
+**Mode menu**: *Text* or *Markdown*.
+
+**Log** (Ctrl+L): the log of the application, for the errors of the scripts.
 
 ![About](images/about.png)
 
@@ -244,7 +300,7 @@ Formats: **PDF**, **Word** (.docx), **EPUB 3**, **HTML**, **Markdown** (one file
 | Ctrl+F7 / Ctrl+F8 | Spelling / grammar on and off |
 | Ctrl+F9 | List of the problems |
 | Ctrl+H | History |
-| Ctrl+R | Reading mode |
+| Ctrl+R | Original view (reading) |
 | Ctrl+T | Dark theme |
 | Ctrl+L | Log |
 | F9 | Project tree |
@@ -254,6 +310,7 @@ Formats: **PDF**, **Word** (.docx), **EPUB 3**, **HTML**, **Markdown** (one file
 | Ctrl+Shift+Space / Ctrl+Alt+Space | No-break space / narrow no-break space |
 | Ctrl+Alt+A | Align with a paragraph of the other pane |
 | Ctrl+Alt+N | Note on the paragraph |
+| Ctrl+click on a link | Follow the link (a click is enough in the preview) |
 
 ## Command line
 
@@ -273,7 +330,9 @@ A file or a folder given on the command line is opened at start (this is also wh
 | `settings.ini`, `goals.ini`, `dictionary.txt` | `%AppData%\Binote` | preferences, objectives, personal words |
 | `history/` | `%AppData%\Binote` | the versions of the destinations |
 | `scripts/`, `scripts.ini` | `%AppData%\Binote` | your scripts and the values of their parameters |
+| `grammar/` | `%AppData%\Binote` | your own languages for the grammar engine (optional) |
+| `SOMMAIRE.md` | destination folder | the table of contents, when you ask for it |
 
-The original (source) files are never modified, except in reading mode when you ask to edit them.
+The original (source) files are never modified, except in the *Original* view when you tick *Edit*.
 
 More: [Architecture](ARCHITECTURE.md), [Building](BUILD.md), [Testing](TESTING.md), [Interface languages](LANGUAGES.md).

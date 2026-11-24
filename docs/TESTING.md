@@ -54,7 +54,7 @@ Any other command goes to the application. Arguments are split on spaces; a path
 | `lang CODE`, `langs` | switch the interface language; list the languages |
 | `plang CODE` | set the language of the project text (**writes `binote.json`**: never on the repository) |
 | `theme dark\|light`, `reading on\|off`, `tree on\|off`, `preview src\|dst on\|off` | display |
-| `set wrap\|diff\|sync\|nbsp\|lines\|paras\|autotypo\|mono\|markdown\|log on\|off`, `set fontsize N` | modes |
+| `set wrap\|diff\|sync\|nbsp\|invisible\|lines\|paras\|autotypo\|mono\|markdown\|log on\|off`, `set fontsize N` | modes |
 | `font ui\|mono\|editor NAME` | choose a font |
 | `typo [all]` | fix the typography of the paragraph, or of the chapter |
 | `toc` | generate the table of contents |

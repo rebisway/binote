@@ -1,0 +1,7 @@
+# Generic profile: curly quotes only when asked
+profile: generic
+
+fix: Il dit "salut" ici => Il dit "salut" ici
+fix2: Il dit "salut" ici => Il dit “salut” ici
+fix: Quoi ? => Quoi ?
+type: Bonjour; ok! => Bonjour; ok!

@@ -1,0 +1,44 @@
+# French typography (Imprimerie nationale, usual practice of the publishers)
+#
+# Narrow no-break space (U+202F) before ; ! ? and inside the guillemets, no-break space (U+00A0) before the colon.
+
+[profile]
+name = French
+
+[quotes]
+# The marks of the language, and the space inside them
+open = «
+close = »
+gap_open = U+202F
+gap_close = U+202F
+# The alternative marks, when the host asks for curly quotes
+alt_open = “
+alt_close = ”
+# A straight quote which follows one of these opens a quotation, else it closes one
+open_after = space tab ( [ – — « “
+open_after_typed = space tab ( [ – —
+
+[apostrophe]
+char = ’
+
+[ellipsis]
+char = …
+
+[dash]
+# " -- " between two spaces
+spaced_double_hyphen = –
+
+[space_before]
+# sign = space, then "closers" if a closing sign may follow it
+; = U+202F closers
+! = U+202F closers
+? = U+202F closers
+: = U+00A0
+
+[context]
+# What a sign may follow for the space to be put before it (letters, digits and these signs)
+prev = letter digit ) ] » … ’ * _ "
+# The same when a space was just typed after the sign
+prev_typed = letter digit ) ] » … ’
+# The signs which may follow ; ! ? when they close something
+closers = ) " » * _ ]

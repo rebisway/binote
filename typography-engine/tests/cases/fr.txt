@@ -1,0 +1,34 @@
+# French profile.   = narrow no-break space,   = no-break space
+profile: fr
+
+# Spaces before signs
+fix: Bonjour ; ok => Bonjour ; ok
+fix: Bonjour; ok => Bonjour ; ok
+fix: Quoi ? => Quoi ?
+fix: Quoi? => Quoi ?
+fix: Non! => Non !
+fix: Voici : un test => Voici : un test
+fix: Voici: un test => Voici : un test
+fix: (vrai !) => (vrai !)
+
+# Quotation marks
+fix: Il dit "salut" ici => Il dit « salut » ici
+fix1: Il dit "salut" ici => Il dit "salut" ici
+fix2: Il dit "salut" ici => Il dit “salut” ici
+
+# Apostrophe, ellipsis, spaced double hyphen
+fix: l'ami => l’ami
+fix: Alors... => Alors…
+fix: Ceci -- cela => Ceci – cela
+fix: Alors.... => Alors....
+
+# Markdown: code spans are left alone
+fixmd: Voici `a;b` ok; non => Voici `a;b` ok ; non
+
+# Typing
+type: Bonjour; ok! Oui => Bonjour ; ok ! Oui
+type: Bonjour ; ok => Bonjour ; ok
+type: Il dit "salut" ici => Il dit « salut » ici
+type2: Il dit "salut" ici => Il dit “salut” ici
+type: l'ami => l’ami
+type: Alors... => Alors…

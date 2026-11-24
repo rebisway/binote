@@ -11,3 +11,9 @@ build-vs/
 /third/imgui-1.92.1/docs
 /third/imgui-1.92.1/examples
 /grammar-engine/
+CLAUDE.md
+dist/
+/third/imgui-1.92.1/.github
+/third/imgui-1.92.1/.editorconfig
+/third/imgui-1.92.1/.gitattributes
+/zip_sources.ps1

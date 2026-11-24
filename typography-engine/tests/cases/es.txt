@@ -4,3 +4,16 @@ fix2: Dijo "hola" ya => Dijo “hola” ya
 fix: Bueno... => Bueno…
 fix: ¿Qué? => ¿Qué?
 type: Dijo "hola" ya => Dijo «hola» ya
+
+# Inverted marks
+fix: Qué hora es? => ¿Qué hora es?
+fix: ¿Qué hora es? => ¿Qué hora es?
+fix: Hola. Qué tal? Bien! => Hola. ¿Qué tal? ¡Bien!
+fix: Hola, ¿qué tal? => Hola, ¿qué tal?
+fix: Qué?! => Qué?!
+fix: a?b=1 => a?b=1
+fix: Dijo "quién viene?" ya => Dijo «¿quién viene?» ya
+fix: Viene (cuándo?) hoy => Viene (¿cuándo?) hoy
+type: Qué hora es? => ¿Qué hora es?
+type: Hola. Bien! => Hola. ¡Bien!
+type: Hola, ¿qué tal? => Hola, ¿qué tal?

@@ -18,6 +18,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <cstring>
+#include <utility>
 #include <vector>
 
 //-----------------------------------------------------------------------------
@@ -118,6 +119,7 @@ struct TypoProfile
     TypoSet     Prev;                   // What a sign may follow when a text is fixed (a space is put before the sign)
     TypoSet     PrevTyped;              // The same while typing
     TypoSet     Closers;
+    std::vector<std::pair<char32_t, char32_t> > Inverted;   // ? -> an inverted mark put at the start of the sentence (Spanish: ¿ ¡)
 
     TypoProfile()
     {
@@ -245,6 +247,7 @@ TypoProfile* Typo::CreateProfile(const char* text, const TypoProfile* parent, st
     std::string& err = error ? *error : local_error;
     TypoProfile* p = parent ? new TypoProfile(*parent) : new TypoProfile();
     std::string section;
+    bool inverted_reset = false;
     bool sign_section_reset = false;            // "space_before" of a profile replaces the table of its parent, it does not add to it
     const std::string source = text ? text : "";
     size_t pos = 0;
@@ -310,6 +313,25 @@ TypoProfile* Typo::CreateProfile(const char* text, const TypoProfile* parent, st
             ok = ParseSet(value, &p->PrevTyped, &err, key);
         else if (section == "context" && key == "closers")
             ok = ParseSet(value, &p->Closers, &err, key);
+        else if (section == "inverted")
+        {
+            // "? = ¿": the sign which ends a sentence, the mark put at the start of it
+            char32_t sign = 0, mark = 0;
+            if (!ParseChar(key, &sign) || !ParseChar(value, &mark))
+            {
+                err = "bad inverted entry";
+                ok = false;
+            }
+            else
+            {
+                if (!inverted_reset)
+                {
+                    p->Inverted.clear();
+                    inverted_reset = true;
+                }
+                p->Inverted.push_back(std::make_pair(sign, mark));
+            }
+        }
         else if (section == "space_before")
         {
             // "; = U+202F closers": the sign, the space, and "closers" if a closing sign may follow
@@ -365,12 +387,54 @@ bool Typo::WatchesChar(const TypoProfile* profile, unsigned int c)
     for (const TypoSign& s : profile->SpaceBefore)
         if (s.Sign == c)
             return true;
+    for (size_t i = 0; i < profile->Inverted.size(); i++)
+        if (profile->Inverted[i].first == c)
+            return true;
     return false;
 }
 
 //-----------------------------------------------------------------------------
 // [SECTION] Rules on a segment of text
 //-----------------------------------------------------------------------------
+
+// Where the inverted mark of the sign at s[i] goes: the start of its sentence. npos when there is nothing to add (no inverted mark for this sign,
+// one is already there, the sign is part of a group "?!" or of a word such as "a?b").
+static size_t InvertedPos(const TypoProfile& p, const Text32& s, size_t i)
+{
+    char32_t mark = 0;
+    for (size_t k = 0; k < p.Inverted.size(); k++)
+        if (p.Inverted[k].first == s[i])
+            mark = p.Inverted[k].second;
+    if (!mark || i == 0)
+        return (size_t)-1;
+    const char32_t before = s[i - 1];
+    if (IsSpace(before) || before == '?' || before == '!')
+        return (size_t)-1;
+    if (i + 1 < s.size() && !IsSpace(s[i + 1]) && !p.Closers.Has(s[i + 1]) && s[i + 1] != ',' && s[i + 1] != '.')
+        return (size_t)-1;
+    for (size_t j = i; j-- > 0;)
+    {
+        const char32_t c = s[j];
+        for (size_t k = 0; k < p.Inverted.size(); k++)
+            if (c == p.Inverted[k].second)
+                return (size_t)-1;                      // already opened (by this mark, or by another one: "¡¿")
+        const bool terminator = c == '.' || c == '!' || c == '?' || c == 0x2026;
+        const bool opener = c == '(' || c == '[' || c == 0xAB || c == 0x201C;     // a quotation or a parenthesis starts a sentence of its own
+        if (opener || (terminator && j + 1 < s.size() && IsSpace(s[j + 1])))
+        {
+            size_t start = j + 1;
+            while (start < i && IsSpace(s[start]))
+                start++;
+            while (start < i && (s[start] == '(' || s[start] == '[' || s[start] == 0xAB || s[start] == 0x201C || s[start] == '"' || s[start] == 0x2014 || s[start] == 0x2013))
+                start++;
+            return start < i ? start : (size_t)-1;
+        }
+    }
+    size_t start = 0;
+    while (start < i && (IsSpace(s[start]) || s[start] == '(' || s[start] == '[' || s[start] == 0xAB || s[start] == 0x201C || s[start] == '"' || s[start] == 0x2014 || s[start] == 0x2013))
+        start++;
+    return start < i ? start : (size_t)-1;
+}
 
 // The rules of a profile on a piece of text which holds no code: ellipsis, apostrophe, dash, then the quotation marks, the spaces inside them
 // and the spaces before the signs.
@@ -483,6 +547,20 @@ static Text32 FixSegment(const TypoProfile& p, const TypoOptions& options, const
         }
         o += c;
     }
+    // The inverted marks at the start of the sentences
+    if (!p.Inverted.empty())
+        for (size_t i = 0; i < o.size(); i++)
+        {
+            const size_t at = InvertedPos(p, o, i);
+            if (at == (size_t)-1)
+                continue;
+            char32_t mark = 0;
+            for (size_t k = 0; k < p.Inverted.size(); k++)
+                if (p.Inverted[k].first == o[i])
+                    mark = p.Inverted[k].second;
+            o.insert(o.begin() + at, mark);
+            i++;
+        }
     return o;
 }
 
@@ -571,6 +649,24 @@ TypoEdit Typo::OnTyped(const TypoProfile* profile, const TypoOptions& options, c
     auto at = [&](size_t k) -> Cp { return k < cps.size() ? cps[k] : Cp{ 0, -1 }; };
     const Cp prev = at(1);
 
+    if (!p.Inverted.empty() && (c == '?' || c == '!'))
+    {
+        const Text32 line = ToText32(before);
+        const size_t at = InvertedPos(p, line, line.size() - 1);
+        if (at != (size_t)-1)
+        {
+            char32_t mark = 0;
+            for (size_t k = 0; k < p.Inverted.size(); k++)
+                if (p.Inverted[k].first == (char32_t)c)
+                    mark = p.Inverted[k].second;
+            const int start = (int)ToUtf8(line.substr(0, at)).size();
+            r.Valid = true;
+            r.Start = start;
+            r.Length = end - start;
+            r.Text = ToUtf8(mark) + before.substr(start);
+        }
+        return r;
+    }
     if (c == '"')
     {
         if (options.QuoteStyle == TypoQuoteStyle_Straight)

@@ -1,5 +1,5 @@
 # Spanish typography: angle quotation marks without spaces (RAE), typographic apostrophe and ellipsis.
-# The inverted marks ¿ ¡ are not added yet.
+# The inverted marks ¿ ¡ are added at the start of the sentence (a question inside a sentence: type the ¿ yourself, it is kept).
 
 [profile]
 name = Spanish
@@ -17,3 +17,12 @@ char = ’
 
 [ellipsis]
 char = …
+
+[inverted]
+# The sign which ends a sentence = the mark put at the start of it
+? = ¿
+! = ¡
+
+[context]
+# The signs which may follow ? or ! when they close something
+closers = ) " » * _ ]

@@ -1,0 +1,22 @@
+# Polish typography: „ ” quotation marks, typographic apostrophe and ellipsis, no line break after a one-letter word.
+
+[profile]
+name = Polish
+
+[quotes]
+open = „
+close = ”
+alt_open = “
+alt_close = ”
+open_after = space tab ( [ – — „
+open_after_typed = space tab ( [ – —
+
+[apostrophe]
+char = ’
+
+[ellipsis]
+char = …
+
+[orphans]
+# Words which must not end a line: the space which follows is a no-break space
+words = a i o u w z

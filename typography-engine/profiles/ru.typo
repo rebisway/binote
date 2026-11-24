@@ -1,0 +1,18 @@
+# Russian typography: « » quotation marks, ellipsis, no line break after a one-letter word.
+
+[profile]
+name = Russian
+
+[quotes]
+open = «
+close = »
+alt_open = “
+alt_close = ”
+open_after = space tab ( [ – — « „
+open_after_typed = space tab ( [ – —
+
+[ellipsis]
+char = …
+
+[orphans]
+words = а в и к о с у я

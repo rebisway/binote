@@ -64,6 +64,10 @@ spaced_double_hyphen = – # " -- " between two spaces
 ? = U+202F closers
 : = U+00A0
 
+[orphans]
+words = a i o u w z        # short words which must not end a line: the space after them becomes a no-break space
+space = U+00A0           # optional
+
 [inverted]
 ? = ¿                       # the mark put at the start of the sentence when it ends with the sign (Spanish)
 ! = ¡
@@ -76,7 +80,7 @@ closers = ) " » * _ ]
 
 Inverted marks: a sentence which ends with `?` or `!` and has no mark at its start gets one, at the start of the sentence (after `. ! ? …`, or after an opening `(`, `«`, `“`). A group such as `?!` and a word such as `a?b` are left alone; a question in the middle of a sentence ("Si vienes, ¿qué...?") is kept when you type the `¿` yourself.
 
-Included: `fr.typo` (French), `en.typo`, `es.typo` (Spanish, with the inverted marks) and `generic.typo` (for a language without a profile: nothing but the curly quotes when asked). A profile which cannot be read gives an error with its line number.
+Included: `fr.typo` (French), `en.typo`, `es.typo` (Spanish, with the inverted marks), `de.typo` and `de-ch.typo`, `it.typo`, `pt.typo` and `pt-pt.typo`, `pl.typo`, `cs.typo` and `ru.typo` (with the orphans), and `generic.typo` (for a language without a profile: nothing but the curly quotes when asked). A profile which cannot be read gives an error with its line number.
 
 In Binote, the profile of the language of the project is looked for in `%AppData%\Binote\typography`, then in the `typography` folder beside the program. A profile placed in the first one replaces the one shipped. `fr-FR` gives `fr-fr.typo`, then `fr.typo`, then `generic.typo`.
 

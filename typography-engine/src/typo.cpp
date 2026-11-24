@@ -119,6 +119,8 @@ struct TypoProfile
     TypoSet     Prev;                   // What a sign may follow when a text is fixed (a space is put before the sign)
     TypoSet     PrevTyped;              // The same while typing
     TypoSet     Closers;
+    std::vector<Text32> Orphans;            // Short words which must not end a line: a no-break space follows them (Polish, Czech, Russian)
+    char32_t    OrphanSpace;
     std::vector<std::pair<char32_t, char32_t> > Inverted;   // ? -> an inverted mark put at the start of the sentence (Spanish: ¿ ¡)
 
     TypoProfile()
@@ -127,6 +129,7 @@ struct TypoProfile
         AltOpen = 0x201C;
         AltClose = 0x201D;
         Apostrophe = Ellipsis = SpacedDash = 0;
+        OrphanSpace = 0x00A0;
     }
 };
 
@@ -313,6 +316,15 @@ TypoProfile* Typo::CreateProfile(const char* text, const TypoProfile* parent, st
             ok = ParseSet(value, &p->PrevTyped, &err, key);
         else if (section == "context" && key == "closers")
             ok = ParseSet(value, &p->Closers, &err, key);
+        else if (section == "orphans" && key == "words")
+        {
+            p->Orphans.clear();
+            for (const std::string& w : Split(value))
+                if (w != "none")
+                    p->Orphans.push_back(ToText32(w));
+        }
+        else if (section == "orphans" && key == "space")
+            ok = ParseOneChar(value, &p->OrphanSpace, &err, key);
         else if (section == "inverted")
         {
             // "? = ¿": the sign which ends a sentence, the mark put at the start of it
@@ -390,12 +402,50 @@ bool Typo::WatchesChar(const TypoProfile* profile, unsigned int c)
     for (size_t i = 0; i < profile->Inverted.size(); i++)
         if (profile->Inverted[i].first == c)
             return true;
+    if (c == ' ' && !profile->Orphans.empty())
+        return true;
     return false;
 }
 
 //-----------------------------------------------------------------------------
 // [SECTION] Rules on a segment of text
 //-----------------------------------------------------------------------------
+
+static bool IsWordChar(char32_t c)       { return IsLetter(c) || IsDigit(c) || (c >= 0x400 && c <= 0x4FF); }
+
+static char32_t Lower(char32_t c)
+{
+    if (c >= 'A' && c <= 'Z')
+        return c + 32;
+    if (c >= 0x410 && c <= 0x42F)
+        return c + 32;
+    if (c >= 0xC0 && c <= 0xDE && c != 0xD7)
+        return c + 32;
+    return c;
+}
+
+// True when the word which ends just before s[end] is one of the orphans of the profile
+static bool OrphanEndsAt(const TypoProfile& p, const Text32& s, size_t end)
+{
+    size_t start = end;
+    while (start > 0 && IsWordChar(s[start - 1]))
+        start--;
+    if (start == end || end - start > 3)
+        return false;
+    for (size_t k = 0; k < p.Orphans.size(); k++)
+    {
+        const Text32& w = p.Orphans[k];
+        if (w.size() != end - start)
+            continue;
+        bool same = true;
+        for (size_t j = 0; j < w.size(); j++)
+            if (Lower(s[start + j]) != Lower(w[j]))
+                same = false;
+        if (same)
+            return true;
+    }
+    return false;
+}
 
 // Where the inverted mark of the sign at s[i] goes: the start of its sentence. npos when there is nothing to add (no inverted mark for this sign,
 // one is already there, the sign is part of a group "?!" or of a word such as "a?b").
@@ -547,6 +597,11 @@ static Text32 FixSegment(const TypoProfile& p, const TypoOptions& options, const
         }
         o += c;
     }
+    // A no-break space after the orphans
+    if (!p.Orphans.empty())
+        for (size_t i = 1; i + 1 < o.size(); i++)
+            if (o[i] == ' ' && IsWordChar(o[i + 1]) && OrphanEndsAt(p, o, i))
+                o[i] = p.OrphanSpace;
     // The inverted marks at the start of the sentences
     if (!p.Inverted.empty())
         for (size_t i = 0; i < o.size(); i++)
@@ -589,6 +644,11 @@ static Text32 SimplifySegment(const TypoProfile& p, const TypoOptions&, const Te
                     drop = true;
             if (p.QuoteOpen && (prev == p.QuoteOpen || next == p.QuoteClose) && (c == p.GapOpen || c == p.GapClose))
                 drop = true;
+            if (c == p.OrphanSpace && !p.Orphans.empty() && OrphanEndsAt(p, in, i))
+            {
+                o += U' ';
+                continue;
+            }
             if (!drop)
                 o += c;
         }
@@ -773,6 +833,19 @@ TypoEdit Typo::OnTyped(const TypoProfile* profile, const TypoOptions& options, c
             r.Start = end - 3;
             r.Length = 3;
             r.Text = ToUtf8(p.Ellipsis);
+        }
+        return r;
+    }
+    if (c == ' ' && !p.Orphans.empty() && !p.SpaceBefore.size())
+    {
+        const Text32 line = ToText32(before);
+        if (line.size() >= 2 && line.size() == ToText32(before).size() && OrphanEndsAt(p, line, line.size() - 1))
+        {
+            r.Valid = true;
+            r.Start = end - 1;
+            r.Length = 1;
+            r.Text = ToUtf8(p.OrphanSpace);
+            return r;
         }
         return r;
     }

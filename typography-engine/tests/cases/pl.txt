@@ -1,0 +1,14 @@
+profile: pl
+fix: Powiedział "cześć" i wyszedł => Powiedział „cześć” i\u00a0wyszedł
+fix: Idę w las => Idę w\u00a0las
+fix: Wow... => Wow…
+type: Idę w las => Idę w\u00a0las
+type: Idę wlas => Idę wlas
+fix: kot a pies => kot a\u00a0pies
+simp: Idę w\u00a0las => Idę w las
+profile: cs
+fix: Jdu k lesu => Jdu k\u00a0lesu
+fix: Řekl "ahoj" => Řekl „ahoj“
+profile: ru
+fix: Он сказал "привет" и ушёл => Он сказал «привет» и\u00a0ушёл
+fix: Я в лес => Я\u00a0в\u00a0лес

@@ -42,6 +42,7 @@ namespace typography
 	std::string profile_path();
 	std::string user_folder();					// where the profiles of the user are (%AppData%/Binote/typography)
 	bool profile_is_user();						// the profile in use comes from the folder of the user
+	std::vector<std::string> profile_codes();	// codes of the profiles found (fr, de-ch...), without the generic one
 	void reload();								// read the profiles again
 	bool create_user_copy();					// copies the profile in use to the folder of the user, to edit it
 	bool has_profile();							// false: only the generic profile (curly quotes), the language has no profile of its own

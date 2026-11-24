@@ -645,7 +645,7 @@ static Text32 FixSegment(const TypoProfile& p, const TypoOptions& options, const
     // A no-break space after the orphans
     if (!p.Orphans.empty())
         for (size_t i = 1; i + 1 < o.size(); i++)
-            if (o[i] == ' ' && IsWordChar(o[i + 1]) && OrphanEndsAt(p, o, i))
+            if (o[i] == ' ' && (IsWordChar(o[i + 1]) || o[i + 1] == p.QuoteOpen || o[i + 1] == '(' || o[i + 1] == '[' || o[i + 1] == 0xAB || o[i + 1] == 0x201E || o[i + 1] == 0x201C) && OrphanEndsAt(p, o, i))
                 o[i] = p.OrphanSpace;
     // Full-width signs after East Asian text
     if (!p.Full.empty())

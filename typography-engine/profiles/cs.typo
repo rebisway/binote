@@ -8,8 +8,8 @@ open = „
 close = “
 alt_open = “
 alt_close = ”
-open_after = space tab ( [ – — „
-open_after_typed = space tab ( [ – —
+open_after = space tab U+00A0 ( [ – — „
+open_after_typed = space tab U+00A0 ( [ – —
 
 [apostrophe]
 char = ’

@@ -171,7 +171,7 @@ namespace typography
 		g_name.clear();
 		std::string lower;
 		for (char c : code)
-			lower += (char)tolower((unsigned char)c);
+			lower += c == '_' ? '-' : (char)tolower((unsigned char)c);		// "pt_PT" (dictionary) gives pt-pt
 		std::vector<std::string> tries = { lower };
 		if (lower.size() > 2)
 			tries.push_back(lower.substr(0, 2));
@@ -192,6 +192,21 @@ namespace typography
 	std::string profile_path()	{ return g_path; }
 	std::string user_folder()	{ return util::combine(util::data_path(), "typography"); }
 	bool profile_is_user()		{ return !g_path.empty() && g_path.compare(0, user_folder().size(), user_folder()) == 0; }
+
+	std::vector<std::string> profile_codes()
+	{
+		std::vector<std::string> codes;
+		std::error_code ec;
+		for (const std::string& d : profile_folders())
+			for (const auto& e : fs::directory_iterator(fs::u8path(d), ec))
+			{
+				const std::string code = e.path().stem().u8string();
+				if (e.path().extension() == ".typo" && code != "generic" && std::find(codes.begin(), codes.end(), code) == codes.end())
+					codes.push_back(code);
+			}
+		std::sort(codes.begin(), codes.end());
+		return codes;
+	}
 
 	// Profiles are read again the next time set_language is called
 	void reload() { g_loaded = false; }

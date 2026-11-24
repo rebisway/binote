@@ -6,6 +6,8 @@ type: Idę w las => Idę w\u00a0las
 type: Idę wlas => Idę wlas
 fix: kot a pies => kot a\u00a0pies
 simp: Idę w\u00a0las => Idę w las
+type: Idę w "las" => Idę w\u00a0„las”
+fix: Idę w "las" => Idę w\u00a0„las”
 profile: cs
 fix: Jdu k lesu => Jdu k\u00a0lesu
 fix: Řekl "ahoj" => Řekl „ahoj“

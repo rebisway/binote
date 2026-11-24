@@ -448,17 +448,98 @@ void App::draw_menu()
 	ImGui::EndMainMenuBar();
 }
 
-// The languages of the text of the project (the dictionaries which were found), as menu items: the menu Tools and the status bar share them
+// The languages of the text of the project: the dictionaries which were found and the languages which have a typography profile. A language
+// with several variants is a submenu (English: United States, United Kingdom...), the variants are named by their country. The menu Tools and the
+// status bar share it.
 void App::draw_project_languages()
 {
-	static const char* names[][2] = { { "fr", "Français" }, { "en_US", "English (US)" }, { "en_GB", "English (UK)" }, { "de_DE", "Deutsch" }, { "es_ES", "Español" }, { "it_IT", "Italiano" }, { "pt_BR", "Português (Brasil)" }, { "pt_PT", "Português" }, { "nl_NL", "Nederlands" } };
-	for (const std::string& code : Spell::languages())
+	static const char* const languages[][2] = { { "fr", "Fran\xC3\xA7""ais" }, { "en", "English" }, { "de", "Deutsch" }, { "es", "Espa\xC3\xB1ol" }, { "it", "Italiano" }, { "pt", "Portugu\xC3\xAAs" },
+		{ "nl", "Nederlands" }, { "pl", "Polski" }, { "cs", "\xC4\x8Ce\xC5\xA1tina" }, { "ru", "\xD0\xA0\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9" }, { "zh", "Chinese" }, { "ja", "Japanese" } };
+	// Country: code, then the name in French, English and Spanish
+	static const char* const countries[][4] = {
+		{ "US", "\xC3\x89tats-Unis", "United States", "Estados Unidos" }, { "GB", "Royaume-Uni", "United Kingdom", "Reino Unido" }, { "AU", "Australie", "Australia", "Australia" },
+		{ "CA", "Canada", "Canada", "Canad\xC3\xA1" }, { "NZ", "Nouvelle-Z\xC3\xA9lande", "New Zealand", "Nueva Zelanda" }, { "ZA", "Afrique du Sud", "South Africa", "Sud\xC3\xA1""frica" },
+		{ "IE", "Irlande", "Ireland", "Irlanda" }, { "IN", "Inde", "India", "India" }, { "FR", "France", "France", "Francia" }, { "BE", "Belgique", "Belgium", "B\xC3\xA9lgica" },
+		{ "CH", "Suisse", "Switzerland", "Suiza" }, { "LU", "Luxembourg", "Luxembourg", "Luxemburgo" }, { "DE", "Allemagne", "Germany", "Alemania" }, { "AT", "Autriche", "Austria", "Austria" },
+		{ "ES", "Espagne", "Spain", "Espa\xC3\xB1""a" }, { "MX", "Mexique", "Mexico", "M\xC3\xA9xico" }, { "AR", "Argentine", "Argentina", "Argentina" }, { "CO", "Colombie", "Colombia", "Colombia" },
+		{ "CL", "Chili", "Chile", "Chile" }, { "PE", "P\xC3\xA9rou", "Peru", "Per\xC3\xBA" }, { "VE", "Venezuela", "Venezuela", "Venezuela" }, { "UY", "Uruguay", "Uruguay", "Uruguay" },
+		{ "PT", "Portugal", "Portugal", "Portugal" }, { "BR", "Br\xC3\xA9sil", "Brazil", "Brasil" }, { "IT", "Italie", "Italy", "Italia" }, { "NL", "Pays-Bas", "Netherlands", "Pa\xC3\xADses Bajos" },
+		{ "PL", "Pologne", "Poland", "Polonia" }, { "CZ", "Tch\xC3\xA9quie", "Czechia", "Chequia" }, { "RU", "Russie", "Russia", "Rusia" }, { "CN", "Chine", "China", "China" }, { "JP", "Japon", "Japan", "Jap\xC3\xB3n" } };
+	const std::string ui = i18n::current();
+	const int column = ui.compare(0, 2, "fr") == 0 ? 1 : ui.compare(0, 2, "es") == 0 ? 3 : 2;
+
+	std::vector<std::string> codes = Spell::languages();
+	// The languages which have a typography profile but no dictionary: the typography (and the style analysis) work, the spelling does not
+	auto normal = [](const std::string& c) { std::string o; for (char ch : c) o += ch == '_' ? '-' : (char)tolower((unsigned char)ch); return o; };
+	for (const std::string& profile : typography::profile_codes())
 	{
-		std::string name = code;
-		for (const auto& n : names)
-			if (code == n[0]) name = std::string(n[1]) + "  (" + code + ")";
-		if (ImGui::MenuItem(name.c_str(), nullptr, _project.language == code))
-			set_project_language(code);
+		bool known = false;
+		for (const std::string& c : codes)
+		{
+			const std::string n = normal(c);
+			if (n == profile || (profile.size() == 2 && n.compare(0, 2, profile) == 0))
+				known = true;
+		}
+		if (!known)
+			codes.push_back(profile);
+	}
+
+	// Group by language (the two first letters)
+	struct Variant { std::string code, label; };
+	std::map<std::string, std::vector<Variant> > groups;
+	for (const std::string& code : codes)
+	{
+		const std::string n = normal(code);
+		const std::string lang = n.substr(0, n.find('-'));
+		std::string country = n.find('-') == std::string::npos ? "" : n.substr(n.find('-') + 1);
+		for (char& ch : country)
+			ch = (char)toupper((unsigned char)ch);
+		std::string label = TR("LANG_GENERAL");
+		if (!country.empty())
+		{
+			label = country;
+			for (const auto& c : countries)
+				if (country == c[0])
+					label = c[column];
+		}
+		groups[lang].push_back({ code, label });
+	}
+	// Sorted by the name of the language
+	std::vector<std::pair<std::string, std::string> > order;
+	for (const auto& g : groups)
+	{
+		std::string name = g.first;
+		for (char& ch : name)
+			ch = (char)toupper((unsigned char)ch);
+		for (const auto& l : languages)
+			if (g.first == l[0])
+				name = l[1];
+		order.push_back({ name, g.first });
+	}
+	std::sort(order.begin(), order.end());
+	for (const auto& o : order)
+	{
+		const std::vector<Variant>& variants = groups[o.second];
+		if (variants.size() == 1)
+		{
+			const bool wide = variants[0].label != TR("LANG_GENERAL");
+			const std::string text = o.first + (wide ? "  (" + variants[0].label + ")" : "");
+			if (ImGui::MenuItem(text.c_str(), nullptr, _project.language == variants[0].code))
+				set_project_language(variants[0].code);
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("%s", variants[0].code.c_str());
+			continue;
+		}
+		if (!ImGui::BeginMenu(o.first.c_str()))
+			continue;
+		for (const Variant& v : variants)
+		{
+			if (ImGui::MenuItem(v.label.c_str(), nullptr, _project.language == v.code))
+				set_project_language(v.code);
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("%s", v.code.c_str());
+		}
+		ImGui::EndMenu();
 	}
 }
 

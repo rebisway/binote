@@ -155,6 +155,7 @@ DLG_PYTHON_TEXT=Binote works without Python, but Python 3.12 or later is needed 
 DLG_PYTHON_PATH=When installing, tick "Add python.exe to PATH", then restart Binote.
 DLG_PYTHON_OPEN=Open python.org/downloads
 DLG_PYTHON_NEVER=Do not remind me again
+LANG_GENERAL=general
 BTN_CLOSE=Close
 
 MENU_OPEN_LOG_FOLDER=Open the log folder

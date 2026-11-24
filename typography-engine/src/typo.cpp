@@ -878,6 +878,17 @@ TypoEdit Typo::OnTyped(const TypoProfile* profile, const TypoOptions& options, c
             r.Start = end - 1;
             r.Length = 1;
             r.Text = (p.GapClose ? ToUtf8(p.GapClose) : std::string()) + ToUtf8(p.QuoteClose);
+            // A sign typed just before the closing mark ("vas-tu?"): it gets its space too, as if a space had been typed after it
+            const Cp x = at(2);
+            if (prev.pos >= 0 && x.pos >= 0 && p.PrevTyped.Has(x.cp))
+                for (const TypoSign& sign : p.SpaceBefore)
+                    if (sign.Sign == prev.cp && sign.Closers)
+                    {
+                        r.Start = prev.pos;
+                        r.Length = end - prev.pos;
+                        r.Text = ToUtf8(sign.Space) + ToUtf8(sign.Sign) + r.Text;
+                        break;
+                    }
         }
         return r;
     }

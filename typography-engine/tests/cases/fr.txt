@@ -39,3 +39,9 @@ simp: Quoi\u202f? Non\u202f! Voici\u00a0: un test\u202f; ok => Quoi? Non! Voici:
 simp: l’ami… => l'ami...
 simp: Il dit “salut” => Il dit "salut"
 simpmd: «\u202fa\u202f» `«\u202fb\u202f;` => "a" `«\u202fb\u202f;`
+
+# A sign typed just before the closing quotation mark
+type: Il dit "vas-tu?" => Il dit «\u202fvas-tu\u202f?\u202f»
+type: Il dit "oui!" ok => Il dit «\u202foui\u202f!\u202f» ok
+type: Il dit "oui" => Il dit «\u202foui\u202f»
+type: Il dit "a:b" => Il dit «\u202fa:b\u202f»

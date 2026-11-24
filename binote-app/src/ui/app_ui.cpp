@@ -454,7 +454,7 @@ void App::draw_menu()
 void App::draw_project_languages()
 {
 	static const char* const languages[][2] = { { "fr", "Fran\xC3\xA7""ais" }, { "en", "English" }, { "de", "Deutsch" }, { "es", "Espa\xC3\xB1ol" }, { "it", "Italiano" }, { "pt", "Portugu\xC3\xAAs" },
-		{ "nl", "Nederlands" }, { "pl", "Polski" }, { "cs", "\xC4\x8Ce\xC5\xA1tina" }, { "ru", "\xD0\xA0\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9" }, { "zh", "Chinese" }, { "ja", "Japanese" } };
+		{ "nl", "Nederlands" }, { "pl", "Polski" }, { "cs", "\xC4\x8C" "e\xC5\xA1tina" }, { "ru", "\xD0\xA0\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB8\xD0\xB9" }, { "zh", "Chinese" }, { "ja", "Japanese" } };
 	// Country: code, then the name in French, English and Spanish
 	static const char* const countries[][4] = {
 		{ "US", "\xC3\x89tats-Unis", "United States", "Estados Unidos" }, { "GB", "Royaume-Uni", "United Kingdom", "Reino Unido" }, { "AU", "Australie", "Australia", "Australia" },

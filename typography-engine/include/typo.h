@@ -79,4 +79,9 @@ namespace Typo
     // Rules applied to a line, a text. Code spans and fenced code blocks are left alone when options.Markdown is set.
     std::string         FixLine(const TypoProfile* profile, const TypoOptions& options, const std::string& line);
     std::string         FixText(const TypoProfile* profile, const TypoOptions& options, const std::string& text);
+
+    // The opposite: plain characters. Every quotation mark becomes ", every apostrophe or single quote becomes ', the ellipsis becomes three dots,
+    // the typographic spaces before the signs and inside the quotation marks of the profile and the inverted marks are removed.
+    std::string         SimplifyLine(const TypoProfile* profile, const TypoOptions& options, const std::string& line);
+    std::string         SimplifyText(const TypoProfile* profile, const TypoOptions& options, const std::string& text);
 }

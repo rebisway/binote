@@ -1,0 +1,10 @@
+# Swiss German: angle quotation marks without spaces.
+
+[profile]
+name = German (Switzerland)
+extends = de
+
+[quotes]
+open = «
+close = »
+open_after = space tab ( [ – — «

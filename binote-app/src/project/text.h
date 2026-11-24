@@ -41,6 +41,9 @@ namespace typography
 	bool has_profile();							// false: only the generic profile (curly quotes), the language has no profile of its own
 	std::string fix_text(const std::string& text, bool markdown);			// code blocks and code spans are left alone
 	std::string fix_line(const std::string& line, bool markdown);
+	// The opposite: plain quotes, apostrophes and dots, no typographic space before the signs
+	std::string simplify_text(const std::string& text, bool markdown);
+	std::string simplify_line(const std::string& line, bool markdown);
 
 	// What to do after a character was typed: replace [start, start + length) of the line by text. before = the line up to the caret (typed included)
 	struct Typed

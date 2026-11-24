@@ -32,3 +32,10 @@ type: Il dit "salut" ici => Il dit « salut » ici
 type2: Il dit "salut" ici => Il dit “salut” ici
 type: l'ami => l’ami
 type: Alors... => Alors…
+
+# The opposite: plain characters (\u202f and \u00a0 in the input)
+simp: Il dit «\u202fsalut\u202f» ici => Il dit "salut" ici
+simp: Quoi\u202f? Non\u202f! Voici\u00a0: un test\u202f; ok => Quoi? Non! Voici: un test; ok
+simp: l’ami… => l'ami...
+simp: Il dit “salut” => Il dit "salut"
+simpmd: «\u202fa\u202f» `«\u202fb\u202f;` => "a" `«\u202fb\u202f;`

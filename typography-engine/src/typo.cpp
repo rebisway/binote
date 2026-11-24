@@ -564,43 +564,56 @@ static Text32 FixSegment(const TypoProfile& p, const TypoOptions& options, const
     return o;
 }
 
+// The opposite of FixSegment: the typographic characters become the plain ones. Every quotation mark becomes ", every apostrophe or single
+// quote becomes ', the ellipsis becomes three dots, the typographic spaces before the signs of the profile and inside its quotation marks are
+// removed, the inverted marks are removed.
+static Text32 SimplifySegment(const TypoProfile& p, const TypoOptions&, const Text32& in)
+{
+    Text32 o;
+    for (size_t i = 0; i < in.size(); i++)
+    {
+        const char32_t c = in[i];
+        const char32_t next = i + 1 < in.size() ? in[i + 1] : 0, prev = i > 0 ? in[i - 1] : 0;
+        if (c == 0xAB || c == 0xBB || c == 0x201C || c == 0x201D || c == 0x201E || c == 0x201F || c == 0x2039 || c == 0x203A || c == 0x300C || c == 0x300D
+            || (p.QuoteOpen && (c == p.QuoteOpen || c == p.QuoteClose)) || (p.AltOpen && (c == p.AltOpen || c == p.AltClose)))
+            o += U'"';
+        else if (c == 0x2018 || c == 0x2019 || c == 0x201A || c == 0x201B || (p.Apostrophe && c == p.Apostrophe))
+            o += U'\'';
+        else if (c == 0x2026 || (p.Ellipsis && c == p.Ellipsis))
+            o += U"...";
+        else if (c == C_NBSP || c == C_NNBSP)
+        {
+            bool drop = false;
+            for (const TypoSign& sign : p.SpaceBefore)
+                if (sign.Sign == next && sign.Space == c)
+                    drop = true;
+            if (p.QuoteOpen && (prev == p.QuoteOpen || next == p.QuoteClose) && (c == p.GapOpen || c == p.GapClose))
+                drop = true;
+            if (!drop)
+                o += c;
+        }
+        else
+        {
+            bool inverted = false;
+            for (size_t k = 0; k < p.Inverted.size(); k++)
+                if (c == p.Inverted[k].second)
+                    inverted = true;
+            if (!inverted)
+                o += c;
+        }
+    }
+    return o;
+}
+
 //-----------------------------------------------------------------------------
 // [SECTION] Public API
 //-----------------------------------------------------------------------------
 
-std::string Typo::FixLine(const TypoProfile* profile, const TypoOptions& options, const std::string& line)
-{
-    bool blank = true;
-    for (char c : line)
-        if (c != ' ' && c != '\t')
-            blank = false;
-    if (blank)
-        return line;
-    if (!options.Markdown)
-        return ToUtf8(FixSegment(*profile, options, ToText32(line)));
-    // Code spans stay as they are
-    std::string out, current;
-    bool in_code = false;
-    for (char c : line)
-    {
-        if (c == '`')
-        {
-            if (!in_code)
-                out += ToUtf8(FixSegment(*profile, options, ToText32(current)));
-            else
-                out += current;
-            out += '`';
-            current.clear();
-            in_code = !in_code;
-        }
-        else
-            current += c;
-    }
-    out += in_code ? current : ToUtf8(FixSegment(*profile, options, ToText32(current)));
-    return out;
-}
+typedef Text32 (*SegmentFunction)(const TypoProfile&, const TypoOptions&, const Text32&);
 
-std::string Typo::FixText(const TypoProfile* profile, const TypoOptions& options, const std::string& text)
+static std::string ApplyLine(SegmentFunction fn, const TypoProfile* profile, const TypoOptions& options, const std::string& line);
+
+static std::string ApplyText(SegmentFunction fn, const TypoProfile* profile, const TypoOptions& options, const std::string& text)
 {
     std::string out;
     bool in_fence = false;
@@ -611,7 +624,7 @@ std::string Typo::FixText(const TypoProfile* profile, const TypoOptions& options
         if (eol == std::string::npos)
             eol = text.size();
         const std::string line = text.substr(pos, eol - pos);
-        const size_t a = line.find_first_not_of(" \t");
+        const size_t a = line.find_first_not_of(" 	");
         const bool fence = options.Markdown && a != std::string::npos && (line.compare(a, 3, "```") == 0 || line.compare(a, 3, "~~~") == 0);
         if (fence)
         {
@@ -619,13 +632,50 @@ std::string Typo::FixText(const TypoProfile* profile, const TypoOptions& options
             out += line;
         }
         else
-            out += in_fence ? line : FixLine(profile, options, line);
+            out += in_fence ? line : ApplyLine(fn, profile, options, line);
         if (eol < text.size())
             out += '\n';
         pos = eol + 1;
     }
     return out;
 }
+
+static std::string ApplyLine(SegmentFunction fn, const TypoProfile* profile, const TypoOptions& options, const std::string& line)
+{
+    bool blank = true;
+    for (char c : line)
+        if (c != ' ' && c != '	')
+            blank = false;
+    if (blank)
+        return line;
+    if (!options.Markdown)
+        return ToUtf8(fn(*profile, options, ToText32(line)));
+    // Code spans stay as they are
+    std::string out, current;
+    bool in_code = false;
+    for (char c : line)
+    {
+        if (c == '`')
+        {
+            if (!in_code)
+                out += ToUtf8(fn(*profile, options, ToText32(current)));
+            else
+                out += current;
+            out += '`';
+            current.clear();
+            in_code = !in_code;
+        }
+        else
+            current += c;
+    }
+    out += in_code ? current : ToUtf8(fn(*profile, options, ToText32(current)));
+    return out;
+}
+
+std::string Typo::FixLine(const TypoProfile* profile, const TypoOptions& options, const std::string& line)         { return ApplyLine(FixSegment, profile, options, line); }
+std::string Typo::FixText(const TypoProfile* profile, const TypoOptions& options, const std::string& text)         { return ApplyText(FixSegment, profile, options, text); }
+std::string Typo::SimplifyLine(const TypoProfile* profile, const TypoOptions& options, const std::string& line)    { return ApplyLine(SimplifySegment, profile, options, line); }
+std::string Typo::SimplifyText(const TypoProfile* profile, const TypoOptions& options, const std::string& text)    { return ApplyText(SimplifySegment, profile, options, text); }
 
 TypoEdit Typo::OnTyped(const TypoProfile* profile, const TypoOptions& options, const std::string& typed, const std::string& before)
 {

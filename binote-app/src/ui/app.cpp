@@ -484,9 +484,9 @@ void App::typed_callback(ImGuiProseEditor* editor, const char* typed, void* user
 }
 
 // Applies the typography of the language to the selection, or to the whole destination
-void App::fix_typography(bool whole)
+void App::fix_typography(bool whole, bool simplify)
 {
-	if (!typography::has_profile())
+	if (!simplify && !typography::has_profile())
 	{
 		status(TR("MSG_TYPO_FRENCH_ONLY"));
 		return;
@@ -496,7 +496,7 @@ void App::fix_typography(bool whole)
 	if (whole)
 	{
 		const std::string text = editor_text(ed);
-		const std::string fixed = typography::fix_text(text, _s.markdown);
+		const std::string fixed = simplify ? typography::simplify_text(text, _s.markdown) : typography::fix_text(text, _s.markdown);
 		if (fixed == text)
 		{
 			status(TR("MSG_TYPO_NOTHING"));
@@ -507,13 +507,13 @@ void App::fix_typography(bool whole)
 		ImGuiProse::GetLine(ed, last, &len);
 		ImGuiProse::Replace(ed, ImGuiProsePos(1, 0), ImGuiProsePos(last, len), fixed.c_str());
 		ImGuiProse::SetCaret(ed, caret, false);
-		status(TR("MSG_TYPO_FIXED"));
+		status(TR(simplify ? "MSG_TYPO_SIMPLIFIED" : "MSG_TYPO_FIXED"));
 	}
 	else
 	{
 		int len = 0;
 		const char* s = ImGuiProse::GetLine(ed, caret.Line, &len);
-		const std::string line(s, len), fixed = typography::fix_line(line, _s.markdown);
+		const std::string line(s, len), fixed = simplify ? typography::simplify_line(line, _s.markdown) : typography::fix_line(line, _s.markdown);
 		if (fixed != line)
 		{
 			ImGuiProse::Replace(ed, ImGuiProsePos(caret.Line, 0), ImGuiProsePos(caret.Line, len), fixed.c_str());
@@ -1002,6 +1002,7 @@ bool App::command(const std::vector<std::string>& a)
 	if (c == "save") return save();
 	if (c == "lang" && a.size() > 1) { i18n::load(a[1]); return true; }
 	if (c == "doc" && a.size() > 1) { request_open_doc(std::atoi(a[1].c_str())); return true; }
+	if (c == "untypo") { fix_typography(a.size() > 1 && a[1] == "all", true); return true; }
 	if (c == "typo") { fix_typography(a.size() > 1 && a[1] == "all"); return true; }
 	if (c == "toc") { generate_toc(); return true; }
 	if (c == "theme" && a.size() > 1) { _s.dark = a[1] == "dark"; return true; }

@@ -17,3 +17,6 @@ fix: Viene (cuándo?) hoy => Viene (¿cuándo?) hoy
 type: Qué hora es? => ¿Qué hora es?
 type: Hola. Bien! => Hola. ¡Bien!
 type: Hola, ¿qué tal? => Hola, ¿qué tal?
+
+simp: ¿Qué hora es? ¡Bien! => Qué hora es? Bien!
+simp: Dijo «sí»… => Dijo "sí"...

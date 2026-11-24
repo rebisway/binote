@@ -1,0 +1,10 @@
+# Portuguese (Portugal): angle quotation marks without spaces.
+
+[profile]
+name = Portuguese (Portugal)
+extends = pt
+
+[quotes]
+open = «
+close = »
+open_after = space tab ( [ – — « “

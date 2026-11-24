@@ -218,7 +218,7 @@ private:
 	std::vector<std::string> paragraphs(ImGuiProseEditor* editor);
 
 	// Editing helpers
-	void fix_typography(bool whole);
+	void fix_typography(bool whole, bool simplify = false);
 	void insert_text(const std::string& s);
 	void go_to(int kind, int value);
 	void move_paragraph(int delta);

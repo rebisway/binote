@@ -1,0 +1,18 @@
+# Italian typography: angle quotation marks without spaces, typographic apostrophe and ellipsis.
+
+[profile]
+name = Italian
+
+[quotes]
+open = «
+close = »
+alt_open = “
+alt_close = ”
+open_after = space tab ( [ – — « “
+open_after_typed = space tab ( [ – —
+
+[apostrophe]
+char = ’
+
+[ellipsis]
+char = …

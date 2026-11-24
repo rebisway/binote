@@ -1,0 +1,4 @@
+profile: it
+fix: Disse "ciao" poi => Disse «ciao» poi
+fix: l'amico... => l’amico…
+type: Disse "ciao" poi => Disse «ciao» poi

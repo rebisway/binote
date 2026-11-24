@@ -1,0 +1,8 @@
+profile: de
+fix: Er sagte "Hallo" dann => Er sagte „Hallo“ dann
+fix2: Er sagte "Hallo" dann => Er sagte “Hallo” dann
+type: Er sagte "Hallo" dann => Er sagte „Hallo“ dann
+fix: Wirklich... => Wirklich…
+profile: de-ch
+fix: Er sagte "Hallo" dann => Er sagte «Hallo» dann
+fix: Wirklich... => Wirklich…

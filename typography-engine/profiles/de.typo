@@ -1,0 +1,18 @@
+# German typography: low-high quotation marks „ “, typographic apostrophe and ellipsis.
+
+[profile]
+name = German
+
+[quotes]
+open = „
+close = “
+alt_open = “
+alt_close = ”
+open_after = space tab ( [ – — „
+open_after_typed = space tab ( [ – —
+
+[apostrophe]
+char = ’
+
+[ellipsis]
+char = …

@@ -426,6 +426,8 @@ void App::draw_menu()
 		if (ImGui::MenuItem(TR("MENU_AUTO_TYPO"), nullptr, _s.auto_typography)) toggle(_s.auto_typography);
 		if (ImGui::MenuItem(TR("MENU_TYPO_PARAGRAPH"), "F7", false, _has_project)) fix_typography(false);
 		if (ImGui::MenuItem(TR("MENU_TYPO_CHAPTER"), "Shift+F7", false, _has_project)) fix_typography(true);
+		if (ImGui::MenuItem(TR("MENU_TYPO_SIMPLIFY_PARAGRAPH"), nullptr, false, _has_project)) fix_typography(false, true);
+		if (ImGui::MenuItem(TR("MENU_TYPO_SIMPLIFY_CHAPTER"), nullptr, false, _has_project)) fix_typography(true, true);
 		ImGui::Separator();
 		if (ImGui::MenuItem(TR("MENU_AUTOSAVE_SWITCH"), nullptr, _s.autosave_on_switch)) toggle(_s.autosave_on_switch);
 		ImGui::EndMenu();

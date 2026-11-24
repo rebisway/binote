@@ -198,6 +198,16 @@ namespace typography
 		return g_profile ? Typo::FixText(g_profile, options(markdown), text) : text;
 	}
 
+	std::string simplify_line(const std::string& line, bool markdown)
+	{
+		return g_profile ? Typo::SimplifyLine(g_profile, options(markdown), line) : line;
+	}
+
+	std::string simplify_text(const std::string& text, bool markdown)
+	{
+		return g_profile ? Typo::SimplifyText(g_profile, options(markdown), text) : text;
+	}
+
 	Typed on_typed(const std::string& typed, const std::string& before)
 	{
 		Typed r;

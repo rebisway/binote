@@ -26,6 +26,8 @@ if (e.Valid)
 Typo::DestroyProfile(fr);
 ```
 
+`Typo::SimplifyLine` and `Typo::SimplifyText` do the opposite: plain `"`, `'` and `...`, no typographic space before the signs or inside the quotation marks of the profile, no inverted mark.
+
 Strings are UTF-8, offsets are byte offsets. With `options.Markdown` the code spans and the fenced code blocks are left alone. `QuoteStyle_Straight` keeps the straight quotes, `QuoteStyle_Curly` uses the alternative marks of the profile.
 
 ## The profiles

@@ -13,6 +13,7 @@
 //   fixmd: input => expected          the same as Markdown (code spans are left alone)
 //   fix1:  input => expected          the same with the straight quotes kept
 //   fix2:  input => expected          the same with the curly quotes
+//   simp:  input => expected          the opposite: plain quotes, apostrophes, dots and spaces
 //   type:  typed text => expected     the text typed one character at a time: each character goes through OnTyped, the edits are applied
 //   type2: typed text => expected     the same with the curly quotes
 // A file of cases begins with "profile: <name>" (the profile it is run with).
@@ -173,6 +174,11 @@ static void RunCases(const std::string& profile_dir, const std::string& file)
             // Fixing is idempotent: a fixed line does not change any more
             Check(Typo::FixLine(profile, options, got) == got, name + " idempotent " + file + ":" + std::to_string(number), Typo::FixLine(profile, options, got), got);
         }
+        else if (kind == "simp" || kind == "simpmd")
+        {
+            options.Markdown = kind == "simpmd";
+            got = Typo::SimplifyLine(profile, options, input);
+        }
         else if (kind == "type" || kind == "type2")
         {
             options.QuoteStyle = kind == "type2" ? TypoQuoteStyle_Curly : TypoQuoteStyle_Local;
@@ -218,7 +224,7 @@ int main(int argc, char** argv)
         return 2;
     }
     TestProfiles();
-    for (const char* name : { "fr", "generic", "en", "es" })
+    for (const char* name : { "fr", "generic", "en", "es", "de", "it", "pt" })
         RunCases(argv[1], std::string(argv[2]) + "/" + name + ".txt");
     printf("%d checks, %d failures\n", g_checks, g_failures);
     return g_failures ? 1 : 0;

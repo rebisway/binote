@@ -57,6 +57,7 @@ Any other command goes to the application. Arguments are split on spaces; a path
 | `set wrap\|diff\|sync\|nbsp\|invisible\|lines\|paras\|autotypo\|mono\|markdown\|log on\|off`, `set fontsize N` | modes |
 | `font ui\|mono\|editor NAME` | choose a font |
 | `typo [all]` | fix the typography of the paragraph, or of the chapter |
+| `untypo [all]` | the opposite: plain quotes, apostrophes, dots and spaces, in the paragraph or the chapter |
 | `toc` | generate the table of contents |
 | `spell on\|off` | spell checker |
 | `grammar "TEXT"` | print the grammar issues of a paragraph: rule, range, text, suggestion |

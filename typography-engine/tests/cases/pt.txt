@@ -1,0 +1,4 @@
+profile: pt
+fix: Ele disse "olá" já => Ele disse “olá” já
+profile: pt-pt
+fix: Ele disse "olá" já => Ele disse «olá» já

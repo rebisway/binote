@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>18.0</VCProjectVersion>
+    <ProjectGuid>{A3C84E17-5D9B-4F62-8E10-7B2D6C4A9E02}</ProjectGuid>
+    <RootNamespace>imgui-prose</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ThirdPartyDir>$(SolutionDir)..\openpostpro\openpostpro</ThirdPartyDir>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration"><UseDebugLibraries>true</UseDebugLibraries></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration"><UseDebugLibraries>false</UseDebugLibraries><WholeProgramOptimization>false</WholeProgramOptimization></PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <OutDir>$(SolutionDir)build-vs\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build-vs\obj\$(ProjectName)\$(Configuration)\</IntDir>
+  </PropertyGroup>  <ItemDefinitionGroup>
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;$(SolutionDir)third\imgui-1.92.1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4244;4267;4996;4305</DisableSpecificWarnings>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'"><ClCompile><Optimization>Disabled</Optimization><PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions></ClCompile></ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'"><ClCompile><Optimization>MaxSpeed</Optimization><FunctionLevelLinking>true</FunctionLevelLinking><IntrinsicFunctions>true</IntrinsicFunctions><PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions></ClCompile></ItemDefinitionGroup>  <ItemGroup><ClCompile Include="src\imgui_prose.cpp" /></ItemGroup>
+  <ItemGroup><ClInclude Include="include\imgui_prose.h" /></ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

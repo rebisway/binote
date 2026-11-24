@@ -1,0 +1,3 @@
+Sample project used for the screenshots of the manual.
+The source text is the beginning of "Alice's Adventures in Wonderland" by Lewis Carroll (1865), chapters I to III,
+from Project Gutenberg (https://www.gutenberg.org/ebooks/11), public domain. The destination (dst/) is a short, made-up rewrite.

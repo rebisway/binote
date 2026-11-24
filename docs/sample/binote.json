@@ -1,0 +1,10 @@
+{
+  "Name": "alice",
+  "Destination": "dst",
+  "Language": "en",
+  "Order": [
+    "01_down_the_rabbit_hole.md",
+    "02_the_pool_of_tears.md",
+    "03_a_caucus_race.md"
+  ]
+}

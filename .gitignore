@@ -1,0 +1,12 @@
+build/
+bin/
+obj/
+*.user
+build-vs/
+.vs/
+*.vcxproj.user
+/wpf-prototype
+/binote-app/lexicon/*.lex
+/exemples
+/third/imgui-1.92.1/docs
+/third/imgui-1.92.1/examples

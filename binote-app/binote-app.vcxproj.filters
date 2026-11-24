@@ -1,0 +1,334 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="resources">
+      <UniqueIdentifier>{57ad14a9-a1c3-502a-a941-325d902d3f5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{cbfe971d-1f95-5ac0-bd34-64afdf962373}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\analysis">
+      <UniqueIdentifier>{40dd4982-1e93-5dac-888b-c9a66c5e2880}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\common">
+      <UniqueIdentifier>{b702cc16-cce4-5ae8-9e28-f6d67c1c9bc7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\export">
+      <UniqueIdentifier>{651d15bc-ea62-545c-b850-bec4de5b6ced}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\project">
+      <UniqueIdentifier>{da609e1e-68fb-51d4-915a-50cb12fb7f96}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\script">
+      <UniqueIdentifier>{f1fe8289-36ed-554b-bc80-b4e388cbd517}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\ui">
+      <UniqueIdentifier>{644019fe-ec7f-5335-9656-f338fdbe0fca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\vcs">
+      <UniqueIdentifier>{a2fa434f-fc15-5efd-80f3-8710bd20a534}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third">
+      <UniqueIdentifier>{502867e7-c1d7-552a-9cf5-59e77248109f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third\ImGui">
+      <UniqueIdentifier>{dc98c45e-6348-5a49-86aa-be32a429badb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third\ImGuiColorTextEdit">
+      <UniqueIdentifier>{6b2fe100-a76a-5639-9dd0-35a0146bf8c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="third\hunspell">
+      <UniqueIdentifier>{c54c2783-3476-544c-bbf8-3e25cac03211}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="grammar-engine">
+      <UniqueIdentifier>{c7a20493-5630-5685-bf69-9a1f249f1b5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="grammar-engine\grammar_engine">
+      <UniqueIdentifier>{05c71c30-763a-5d5f-803f-7bb7a8dfdeb9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="grammar-engine\grammar_engine\data">
+      <UniqueIdentifier>{b8535191-5c2b-571c-b1ba-430efe0575f9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="grammar-engine\grammar_engine\langs">
+      <UniqueIdentifier>{5b2beb77-24dc-55d9-942a-7b2507a7cc12}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="grammar-engine\tests">
+      <UniqueIdentifier>{bc0eda11-16b9-5dbd-9a37-45c545a6f614}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="grammar-engine\tools">
+      <UniqueIdentifier>{5957f042-2237-53cb-b084-aea74616c71d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="binote.rc">
+      <Filter>resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\bridge.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\app.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\app_charmap.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\app_export.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\export\exporter.cpp">
+      <Filter>src\export</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\app_notes.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\app_names.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\app_problems.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\app_style_extra.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\app_script.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\app_links.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\app_vcs.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vcs\vcs.cpp">
+      <Filter>src\vcs</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\app_ui.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="$(OppDir)\src\third\IMGUI_third\ImGuiColorTextEdit\TextEditor.cpp">
+      <Filter>third\ImGuiColorTextEdit</Filter>
+    </ClCompile>
+    <ClCompile Include="src\analysis\grammar.cpp">
+      <Filter>src\analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="src\analysis\lexicon.cpp">
+      <Filter>src\analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\i18n.cpp">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\project\project.cpp">
+      <Filter>src\project</Filter>
+    </ClCompile>
+    <ClCompile Include="src\script\pyscript.cpp">
+      <Filter>src\script</Filter>
+    </ClCompile>
+    <ClCompile Include="src\project\search.cpp">
+      <Filter>src\project</Filter>
+    </ClCompile>
+    <ClCompile Include="src\analysis\spell.cpp">
+      <Filter>src\analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="src\analysis\style.cpp">
+      <Filter>src\analysis</Filter>
+    </ClCompile>
+    <ClCompile Include="third\hunspell\affentry.cxx">
+      <Filter>third\hunspell</Filter>
+    </ClCompile>
+    <ClCompile Include="third\hunspell\affixmgr.cxx">
+      <Filter>third\hunspell</Filter>
+    </ClCompile>
+    <ClCompile Include="third\hunspell\csutil.cxx">
+      <Filter>third\hunspell</Filter>
+    </ClCompile>
+    <ClCompile Include="third\hunspell\filemgr.cxx">
+      <Filter>third\hunspell</Filter>
+    </ClCompile>
+    <ClCompile Include="third\hunspell\hashmgr.cxx">
+      <Filter>third\hunspell</Filter>
+    </ClCompile>
+    <ClCompile Include="third\hunspell\hunspell.cxx">
+      <Filter>third\hunspell</Filter>
+    </ClCompile>
+    <ClCompile Include="third\hunspell\hunzip.cxx">
+      <Filter>third\hunspell</Filter>
+    </ClCompile>
+    <ClCompile Include="third\hunspell\phonet.cxx">
+      <Filter>third\hunspell</Filter>
+    </ClCompile>
+    <ClCompile Include="third\hunspell\replist.cxx">
+      <Filter>third\hunspell</Filter>
+    </ClCompile>
+    <ClCompile Include="third\hunspell\suggestmgr.cxx">
+      <Filter>third\hunspell</Filter>
+    </ClCompile>
+    <ClCompile Include="src\project\text.cpp">
+      <Filter>src\project</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\util.cpp">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\dialog.cpp">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\lang.cpp">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\logger.cpp">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\strings.cpp">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="$(OppDir)\src\third\IMGUI\imgui.cpp">
+      <Filter>third\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="$(OppDir)\src\third\IMGUI\imgui_draw.cpp">
+      <Filter>third\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="$(OppDir)\src\third\IMGUI\imgui_tables.cpp">
+      <Filter>third\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="$(OppDir)\src\third\IMGUI\imgui_widgets.cpp">
+      <Filter>third\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="$(OppDir)\src\third\IMGUI\backends\imgui_impl_glfw.cpp">
+      <Filter>third\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="$(OppDir)\src\third\IMGUI\backends\imgui_impl_opengl3.cpp">
+      <Filter>third\ImGui</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\ui\bridge.h">
+      <Filter>src\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\app.h">
+      <Filter>src\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\analysis\grammar.h">
+      <Filter>src\analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="src\analysis\lexicon.h">
+      <Filter>src\analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="src\export\exporter.h">
+      <Filter>src\export</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vcs\vcs.h">
+      <Filter>src\vcs</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\version.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\i18n.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\project\project.h">
+      <Filter>src\project</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\json.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\project\search.h">
+      <Filter>src\project</Filter>
+    </ClInclude>
+    <ClInclude Include="src\script\pyscript.h">
+      <Filter>src\script</Filter>
+    </ClInclude>
+    <ClInclude Include="src\analysis\spell.h">
+      <Filter>src\analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="src\analysis\style.h">
+      <Filter>src\analysis</Filter>
+    </ClInclude>
+    <ClInclude Include="src\project\text.h">
+      <Filter>src\project</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\util.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\dialog.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\lang.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\logger.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\stringex.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\grammar-engine\README.md">
+      <Filter>grammar-engine</Filter>
+    </None>
+    <None Include="..\grammar-engine\LICENSE">
+      <Filter>grammar-engine</Filter>
+    </None>
+    <None Include="..\grammar-engine\grammar_engine\__init__.py">
+      <Filter>grammar-engine\grammar_engine</Filter>
+    </None>
+    <None Include="..\grammar-engine\grammar_engine\__main__.py">
+      <Filter>grammar-engine\grammar_engine</Filter>
+    </None>
+    <None Include="..\grammar-engine\grammar_engine\bridge.py">
+      <Filter>grammar-engine\grammar_engine</Filter>
+    </None>
+    <None Include="..\grammar-engine\grammar_engine\core.py">
+      <Filter>grammar-engine\grammar_engine</Filter>
+    </None>
+    <None Include="..\grammar-engine\grammar_engine\lexicon.py">
+      <Filter>grammar-engine\grammar_engine</Filter>
+    </None>
+    <None Include="..\grammar-engine\grammar_engine\tagger.py">
+      <Filter>grammar-engine\grammar_engine</Filter>
+    </None>
+    <None Include="..\grammar-engine\grammar_engine\text.py">
+      <Filter>grammar-engine\grammar_engine</Filter>
+    </None>
+    <None Include="..\grammar-engine\grammar_engine\langs\__init__.py">
+      <Filter>grammar-engine\grammar_engine\langs</Filter>
+    </None>
+    <None Include="..\grammar-engine\grammar_engine\langs\en.py">
+      <Filter>grammar-engine\grammar_engine\langs</Filter>
+    </None>
+    <None Include="..\grammar-engine\grammar_engine\langs\es.py">
+      <Filter>grammar-engine\grammar_engine\langs</Filter>
+    </None>
+    <None Include="..\grammar-engine\grammar_engine\langs\es_ar.py">
+      <Filter>grammar-engine\grammar_engine\langs</Filter>
+    </None>
+    <None Include="..\grammar-engine\grammar_engine\langs\fr.py">
+      <Filter>grammar-engine\grammar_engine\langs</Filter>
+    </None>
+    <None Include="..\grammar-engine\grammar_engine\data\README_lexicon_en.txt">
+      <Filter>grammar-engine\grammar_engine\data</Filter>
+    </None>
+    <None Include="..\grammar-engine\grammar_engine\data\README_lexique_fr.txt">
+      <Filter>grammar-engine\grammar_engine\data</Filter>
+    </None>
+    <None Include="..\grammar-engine\tests\test_en.py">
+      <Filter>grammar-engine\tests</Filter>
+    </None>
+    <None Include="..\grammar-engine\tests\test_fr.py">
+      <Filter>grammar-engine\tests</Filter>
+    </None>
+    <None Include="..\grammar-engine\tools\build_lexicon.py">
+      <Filter>grammar-engine\tools</Filter>
+    </None>
+    <None Include="..\grammar-engine\tools\build_lexicon_en.py">
+      <Filter>grammar-engine\tools</Filter>
+    </None>
+    <None Include="..\grammar-engine\tools\show_tags.py">
+      <Filter>grammar-engine\tools</Filter>
+    </None>
+  </ItemGroup>
+</Project>

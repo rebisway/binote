@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>18.0</VCProjectVersion>
+    <ProjectGuid>{D2B96F30-1E47-4A85-B3C9-5F8A0E7D1C03}</ProjectGuid>
+    <RootNamespace>binote</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ThirdPartyDir>$(SolutionDir)..\openpostpro\openpostpro</ThirdPartyDir>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration"><UseDebugLibraries>true</UseDebugLibraries></PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration"><UseDebugLibraries>false</UseDebugLibraries><WholeProgramOptimization>false</WholeProgramOptimization></PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+        <TargetName>binote</TargetName>
+    <IntDir>$(SolutionDir)build-vs\obj\$(ProjectName)\$(Configuration)\</IntDir>
+  </PropertyGroup>  <ItemDefinitionGroup>
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)third\hunspell;$(SolutionDir)third\imgui-1.92.1;$(SolutionDir)third\imgui-1.92.1\backends;$(ThirdPartyDir)\src\third;$(ThirdPartyDir)\src\third\python\313;$(SolutionDir)third\ImGuiColorTextEdit;$(SolutionDir)imgui-md\include;$(SolutionDir)imgui-prose\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;HUNSPELL_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4244;4267;4996;4305</DisableSpecificWarnings>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'"><ClCompile><Optimization>Disabled</Optimization><PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions></ClCompile></ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'"><ClCompile><Optimization>MaxSpeed</Optimization><FunctionLevelLinking>true</FunctionLevelLinking><IntrinsicFunctions>true</IntrinsicFunctions><PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions></ClCompile></ItemDefinitionGroup>  <ItemDefinitionGroup>
+    <Link>
+      <AdditionalDependencies>$(ThirdPartyDir)\lib\glfw\glfw3.lib;$(ThirdPartyDir)\lib\python\python3.lib;delayimp.lib;opengl32.lib;gdi32.lib;shell32.lib;user32.lib;ole32.lib;comdlg32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <DelayLoadDLLs>python3.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy /E /I /Y /Q "$(ProjectDir)fonts" "$(OutDir)fonts" &gt;nul
+xcopy /E /I /Y /Q "$(ProjectDir)dict" "$(OutDir)dict" &gt;nul
+xcopy /E /I /Y /Q "$(ProjectDir)icons" "$(OutDir)icons" &gt;nul
+xcopy /E /I /Y /Q "$(ProjectDir)scripts" "$(OutDir)scripts" &gt;nul
+xcopy /E /I /Y /Q "$(ProjectDir)lexicon" "$(OutDir)lexicon" &gt;nul
+xcopy /E /I /Y /Q "$(ProjectDir)lang" "$(OutDir)lang" &gt;nul
+xcopy /E /I /Y /Q "$(SolutionDir)grammar-engine\grammar_engine" "$(OutDir)grammar-engine\grammar_engine" &gt;nul</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'"><Link><SubSystem>Console</SubSystem></Link></ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'"><Link><SubSystem>Windows</SubSystem><EntryPointSymbol>mainCRTStartup</EntryPointSymbol><EnableCOMDATFolding>true</EnableCOMDATFolding><OptimizeReferences>true</OptimizeReferences></Link></ItemDefinitionGroup>
+  <ItemGroup>
+    <ResourceCompile Include="binote.rc" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\ui\bridge.cpp" />
+    <ClCompile Include="src\ui\app.cpp" />
+    <ClCompile Include="src\ui\app_charmap.cpp" />
+    <ClCompile Include="src\ui\app_export.cpp" />
+    <ClCompile Include="src\export\exporter.cpp" />
+    <ClCompile Include="src\ui\app_notes.cpp" />
+    <ClCompile Include="src\ui\app_names.cpp" />
+    <ClCompile Include="src\ui\app_problems.cpp" />
+    <ClCompile Include="src\ui\app_style_extra.cpp" />
+    <ClCompile Include="src\ui\app_script.cpp" />
+    <ClCompile Include="src\ui\app_links.cpp" />
+    <ClCompile Include="src\ui\app_vcs.cpp" />
+    <ClCompile Include="src\vcs\vcs.cpp" />
+    <ClCompile Include="src\ui\app_ui.cpp" />
+    <ClCompile Include="$(SolutionDir)third\ImGuiColorTextEdit\TextEditor.cpp"><WarningLevel>TurnOffAllWarnings</WarningLevel></ClCompile>
+    <ClCompile Include="src\analysis\grammar.cpp" />
+    <ClCompile Include="src\analysis\lexicon.cpp" />
+    <ClCompile Include="src\common\i18n.cpp" />
+    <ClCompile Include="src\project\project.cpp" />
+    <ClCompile Include="src\script\pyscript.cpp" />
+    <ClCompile Include="src\project\search.cpp" />
+    <ClCompile Include="src\analysis\spell.cpp" />
+    <ClCompile Include="src\analysis\style.cpp" />
+    <ClCompile Include="third\hunspell\affentry.cxx"><WarningLevel>TurnOffAllWarnings</WarningLevel></ClCompile>
+    <ClCompile Include="third\hunspell\affixmgr.cxx"><WarningLevel>TurnOffAllWarnings</WarningLevel></ClCompile>
+    <ClCompile Include="third\hunspell\csutil.cxx"><WarningLevel>TurnOffAllWarnings</WarningLevel></ClCompile>
+    <ClCompile Include="third\hunspell\filemgr.cxx"><WarningLevel>TurnOffAllWarnings</WarningLevel></ClCompile>
+    <ClCompile Include="third\hunspell\hashmgr.cxx"><WarningLevel>TurnOffAllWarnings</WarningLevel></ClCompile>
+    <ClCompile Include="third\hunspell\hunspell.cxx"><WarningLevel>TurnOffAllWarnings</WarningLevel></ClCompile>
+    <ClCompile Include="third\hunspell\hunzip.cxx"><WarningLevel>TurnOffAllWarnings</WarningLevel></ClCompile>
+    <ClCompile Include="third\hunspell\phonet.cxx"><WarningLevel>TurnOffAllWarnings</WarningLevel></ClCompile>
+    <ClCompile Include="third\hunspell\replist.cxx"><WarningLevel>TurnOffAllWarnings</WarningLevel></ClCompile>
+    <ClCompile Include="third\hunspell\suggestmgr.cxx"><WarningLevel>TurnOffAllWarnings</WarningLevel></ClCompile>
+    <ClCompile Include="src\project\text.cpp" />
+    <ClCompile Include="src\common\util.cpp" />
+    <ClCompile Include="src\common\dialog.cpp" />
+    <ClCompile Include="src\common\lang.cpp" />
+    <ClCompile Include="src\common\logger.cpp" />
+    <ClCompile Include="src\common\strings.cpp" />
+    <ClCompile Include="$(SolutionDir)third\imgui-1.92.1\imgui.cpp"><Link>third\imgui\imgui.cpp</Link></ClCompile>
+    <ClCompile Include="$(SolutionDir)third\imgui-1.92.1\imgui_draw.cpp"><Link>third\imgui\imgui_draw.cpp</Link></ClCompile>
+    <ClCompile Include="$(SolutionDir)third\imgui-1.92.1\imgui_tables.cpp"><Link>third\imgui\imgui_tables.cpp</Link></ClCompile>
+    <ClCompile Include="$(SolutionDir)third\imgui-1.92.1\imgui_widgets.cpp"><Link>third\imgui\imgui_widgets.cpp</Link></ClCompile>
+    <ClCompile Include="$(SolutionDir)third\imgui-1.92.1\backends\imgui_impl_glfw.cpp"><Link>third\imgui\imgui_impl_glfw.cpp</Link></ClCompile>
+    <ClCompile Include="$(SolutionDir)third\imgui-1.92.1\backends\imgui_impl_opengl3.cpp"><Link>third\imgui\imgui_impl_opengl3.cpp</Link></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\ui\bridge.h" />
+    <ClInclude Include="src\ui\app.h" />
+    <ClInclude Include="src\analysis\grammar.h" />
+    <ClInclude Include="src\analysis\lexicon.h" />
+    <ClInclude Include="src\export\exporter.h" />
+    <ClInclude Include="src\vcs\vcs.h" />
+    <ClInclude Include="src\common\version.h" />
+    <ClInclude Include="src\common\i18n.h" />
+    <ClInclude Include="src\project\project.h" />
+    <ClInclude Include="src\common\json.h" />
+    <ClInclude Include="src\project\search.h" />
+    <ClInclude Include="src\script\pyscript.h" />
+    <ClInclude Include="src\analysis\spell.h" />
+    <ClInclude Include="src\analysis\style.h" />
+    <ClInclude Include="src\project\text.h" />
+    <ClInclude Include="src\common\util.h" />
+    <ClInclude Include="src\common\dialog.h" />
+    <ClInclude Include="src\common\lang.h" />
+    <ClInclude Include="src\common\logger.h" />
+    <ClInclude Include="src\common\stringex.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\imgui-md\imgui-md.vcxproj"><Project>{6F1D3A52-8B2E-4C0A-9D41-2A7E5C1B9F01}</Project></ProjectReference>
+    <ProjectReference Include="..\imgui-prose\imgui-prose.vcxproj"><Project>{A3C84E17-5D9B-4F62-8E10-7B2D6C4A9E02}</Project></ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\grammar-engine\README.md" />
+    <None Include="..\grammar-engine\LICENSE" />
+    <None Include="..\grammar-engine\grammar_engine\__init__.py" />
+    <None Include="..\grammar-engine\grammar_engine\__main__.py" />
+    <None Include="..\grammar-engine\grammar_engine\bridge.py" />
+    <None Include="..\grammar-engine\grammar_engine\core.py" />
+    <None Include="..\grammar-engine\grammar_engine\lexicon.py" />
+    <None Include="..\grammar-engine\grammar_engine\tagger.py" />
+    <None Include="..\grammar-engine\grammar_engine\text.py" />
+    <None Include="..\grammar-engine\grammar_engine\langs\__init__.py" />
+    <None Include="..\grammar-engine\grammar_engine\langs\en.py" />
+    <None Include="..\grammar-engine\grammar_engine\langs\es.py" />
+    <None Include="..\grammar-engine\grammar_engine\langs\es_ar.py" />
+    <None Include="..\grammar-engine\grammar_engine\langs\fr.py" />
+    <None Include="..\grammar-engine\grammar_engine\data\README_lexicon_en.txt" />
+    <None Include="..\grammar-engine\grammar_engine\data\README_lexique_fr.txt" />
+    <None Include="..\grammar-engine\tests\test_en.py" />
+    <None Include="..\grammar-engine\tests\test_fr.py" />
+    <None Include="..\grammar-engine\tools\build_lexicon.py" />
+    <None Include="..\grammar-engine\tools\build_lexicon_en.py" />
+    <None Include="..\grammar-engine\tools\show_tags.py" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

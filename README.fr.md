@@ -19,6 +19,7 @@ Binote sert à réécrire un texte paragraphe par paragraphe en gardant l'origin
 - **Projets** : un fichier seul, ou un dossier de chapitres avec un plan en arbre (`binote.json`) ; numéros de lignes et de paragraphes, paragraphe courant surligné, aller à une ligne, sommaire.
 - **Aperçu Markdown** avec images et diagrammes ; les **liens** sont suivis (un fichier Markdown s'ouvre dans Binote, une adresse web ouvre le navigateur).
 - Thèmes clair et sombre, interface en anglais, en français et en espagnol.
+- **Texte chinois, japonais et coréen** : une police de secours (trouvée sur le système, ou choisie dans les préférences), les règles de coupure de ligne de l'écriture est-asiatique (kinsoku) et la position du curseur transmise à la méthode de saisie.
 
 **Correction et typographie**
 - **Orthographe** (Hunspell) et **grammaire** : un moteur Python de règles indépendantes, un fichier par langue, avec un étiqueteur et un lexique pour le français, l'anglais et l'espagnol (les variantes comme l'espagnol argentin dérivent de leur langue). Les fautes sont soulignées et listées avec leurs numéros de ligne. Le moteur est un [composant séparé](grammar-engine).
@@ -37,6 +38,13 @@ Binote sert à réécrire un texte paragraphe par paragraphe en gardant l'origin
 <p>
 <img src="docs/images/problems.png" width="49%" alt="Problèmes d'orthographe et de grammaire">
 <img src="docs/images/style.png" width="49%" alt="Analyse de style">
+</p>
+
+Texte japonais et chinois, en double vue (les premières lignes de *Je suis un chat* et du *Journal d'un fou*, dans le domaine public) :
+
+<p>
+<img src="docs/images/cjk-japanese.png" width="49%" alt="Texte japonais">
+<img src="docs/images/cjk-chinese.png" width="49%" alt="Texte chinois">
 </p>
 
 ## Pour commencer

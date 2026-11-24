@@ -11,7 +11,9 @@ decorations given by the host (`ImGuiProseSpan`: backgrounds, wavy underlines, u
 `TypedCallback` after typed characters (typography), scroll synchronisation between two editors by paragraph.
 A 600 KB text (6000 lines) loads and scrolls without trouble.
 
-Not done yet: input method editors (CJK), bidirectional text, rectangular selection, find / replace (the host does it with
+East Asian text: line breaking with the *kinsoku* rules (some signs never start or end a line) and the position of the caret given to the input method of the system (`ImGuiPlatformImeData`); the host chooses a font which has the glyphs. The measuring, breaking and drawing of a row go through a replaceable `ImGuiProseShaper` (`ImGuiProse::GetDefaultShaper` is the built-in one).
+
+Not done yet: composition (preedit) text drawn inside the editor, bidirectional text, rectangular selection, find / replace (the host does it with
 `Replace` and `SetSpans`), drag and drop of text, spans following the edits (the host sets them again when `GetVersion` changes).
 
 ## Use

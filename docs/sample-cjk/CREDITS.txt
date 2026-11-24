@@ -1,0 +1,6 @@
+Sample projects with Japanese and Chinese text, used for the screenshots of the README and of the manual.
+
+ja/  The source is the beginning of "Wagahai wa neko de aru" (I Am a Cat) by Natsume Soseki (1905), public domain (Aozora Bunko, https://www.aozora.gr.jp/).
+zh/  The source is the beginning of "Kuangren riji" (Diary of a Madman) by Lu Xun (1918), public domain.
+The destination (dst/) of each project is a short, made-up rewrite.
+The text was typed from the published works for this sample: check it against an edition before quoting it.

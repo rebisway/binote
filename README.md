@@ -19,6 +19,7 @@ Binote is made to rewrite a text paragraph by paragraph while keeping the origin
 - **Projects**: a single file, or a folder of chapters with an outline tree (`binote.json`); line and paragraph numbers, the current paragraph highlighted, go to a line, table of contents.
 - **Markdown preview** with images and diagrams; **links** are followed (a Markdown file opens in Binote, a web address opens the browser).
 - Light and dark themes, interface in English, French and Spanish.
+- **Chinese, Japanese and Korean text**: a fallback font (found on the system, or chosen in the preferences), the line breaking rules of East Asian text (kinsoku) and the position of the caret given to the input method.
 
 **Checking and typography**
 - **Spelling** (Hunspell) and **grammar**: a Python engine of independent rules, one file per language, with a tagger and a lexicon for French, English and Spanish (variants such as Argentine Spanish derive from their language). The mistakes are underlined and listed with their line numbers. The engine is a [separate component](grammar-engine).
@@ -37,6 +38,13 @@ Binote is made to rewrite a text paragraph by paragraph while keeping the origin
 <p>
 <img src="docs/images/problems.png" width="49%" alt="Spelling and grammar problems">
 <img src="docs/images/style.png" width="49%" alt="Style analysis">
+</p>
+
+Japanese and Chinese text, in the dual view (the first lines of *I Am a Cat* and of *Diary of a Madman*, public domain):
+
+<p>
+<img src="docs/images/cjk-japanese.png" width="49%" alt="Japanese text">
+<img src="docs/images/cjk-chinese.png" width="49%" alt="Chinese text">
 </p>
 
 ## Quick start

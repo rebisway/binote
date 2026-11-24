@@ -16,6 +16,7 @@ Binote is made to rewrite a text paragraph by paragraph, in a **dual view** (the
 - [Export](#export)
 - [Display and preferences](#display-and-preferences)
 - [Keyboard shortcuts](#keyboard-shortcuts)
+- [Chinese, Japanese and Korean text](#chinese-japanese-and-korean-text)
 - [Command line](#command-line)
 - [Files written by Binote](#files-written-by-binote)
 
@@ -269,7 +270,7 @@ Formats: **PDF**, **Word** (.docx), **EPUB 3**, **HTML**, **Markdown** (one file
 - *Automatically save a version every 90 s* (the history).
 - *Quotation marks typed with the " key*: French guillemets « » (with narrow no-break spaces), straight quotes (no replacement) or English curly quotes.
 - *File opened from the system* (double click, *Open with*): read only as the text of the original, read only as the rendered Markdown, or normal editing.
-- The size of the interface font and of the editor font, and the fonts themselves (interface, editor, monospaced, and the font for Chinese, Japanese and Korean: automatic, none, or one of the system).
+- The size of the interface font and of the editor font, and the fonts themselves (interface, editor, monospaced, and the font for Chinese, Japanese and Korean: see [Chinese, Japanese and Korean text](#chinese-japanese-and-korean-text)).
 - *Offer Binote for .md and .markdown files* adds Binote to the *Open with* list of the system.
 
 **Colours**
@@ -284,6 +285,21 @@ Formats: **PDF**, **Word** (.docx), **EPUB 3**, **HTML**, **Markdown** (one file
 **Log** (Ctrl+L): the log of the application, for the errors of the scripts.
 
 ![About](images/about.png)
+
+### Chinese, Japanese and Korean text
+
+Binote shows and edits Chinese, Japanese and Korean text, in the editors, the preview and the interface:
+
+![Japanese and Chinese text](images/cjk-japanese.png)
+
+![Chinese text](images/cjk-chinese.png)
+
+The sample projects are in [`sample-cjk`](sample-cjk) (see [`sample-cjk/CREDITS.txt`](sample-cjk/CREDITS.txt)).
+
+- **Font**: the font of the text does not have these characters, so a second font is merged behind it. By default Binote takes the first one it finds on the system (on Windows: Yu Gothic, Microsoft YaHei, Malgun Gothic, SimSun; on Linux: Noto Sans CJK or Droid Sans Fallback). In **Preferences > General**, *Chinese / Japanese / Korean font* chooses *Automatic (system fonts)*, *None* (the characters are then not drawn) or one of the fonts of the system. A glyph is built the first time it is drawn, so the large fonts cost nothing at start.
+- **Line breaking**: in word wrap, the break is moved back when it would break the rules of East Asian typography (*kinsoku*): closing brackets, stops, small kana and the prolonged sound mark do not start a line, opening brackets do not end one.
+- **Input method**: the caret position is given to the input method of the system, so its candidate window opens where you type.
+- The spelling and grammar checkers, the French typography and the style analysis are made for the languages of the dictionaries and engine languages (French, English, Spanish...): they have no rule for Chinese, Japanese or Korean text.
 
 ## Keyboard shortcuts
 

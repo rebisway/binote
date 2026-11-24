@@ -19,6 +19,8 @@ set(IMGUI_MD_BUILD_DEMO OFF CACHE BOOL "" FORCE)
 set(IMGUI_PROSE_BUILD_DEMO OFF CACHE BOOL "" FORCE)
 add_subdirectory(../imgui-md imgui-md)
 add_subdirectory(../imgui-prose imgui-prose)
+set(TYPO_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+add_subdirectory(../typography-engine typography-engine)
 
 # Hunspell (spelling), compiled with Binote
 file(GLOB HUNSPELL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/third/hunspell/*.cxx)
@@ -82,7 +84,7 @@ else()
 	target_include_directories(binote PRIVATE ${Python3_INCLUDE_DIRS})
 	target_link_libraries(binote PRIVATE Python3::Python)
 endif()
-target_link_libraries(binote PRIVATE hunspell imgui_md imgui_prose ${BINOTE_THIRD_DIR}/lib/glfw/glfw3.lib opengl32 gdi32 shell32 user32 ole32 comdlg32)
+target_link_libraries(binote PRIVATE hunspell imgui_md imgui_prose typo ${BINOTE_THIRD_DIR}/lib/glfw/glfw3.lib opengl32 gdi32 shell32 user32 ole32 comdlg32)
 if(MSVC)
 	target_compile_options(binote PRIVATE /utf-8 /W3 /wd4244 /wd4267 /wd4996 /wd4305)
 	target_compile_definitions(binote PRIVATE _CRT_SECURE_NO_WARNINGS NOMINMAX)
@@ -96,5 +98,6 @@ add_custom_target(binote_resources ALL
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/scripts $<TARGET_FILE_DIR:binote>/scripts
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/lexicon $<TARGET_FILE_DIR:binote>/lexicon
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/lang $<TARGET_FILE_DIR:binote>/lang
+	COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/../typography-engine/profiles $<TARGET_FILE_DIR:binote>/typography
 	COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/../grammar-engine/grammar_engine $<TARGET_FILE_DIR:binote>/grammar-engine)
 add_dependencies(binote_resources binote)

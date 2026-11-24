@@ -75,6 +75,7 @@ Dear ImGui and ImGuiColorTextEdit are in `third/`, Hunspell in `binote-app/third
 - [Testing](docs/TESTING.md): the test bridge and its commands, the engine tests, the screenshots
 - [Interface languages](docs/LANGUAGES.md): the format of the language files, how to add a language
 - [Scripts](binote-app/scripts/README_scripts.txt): the contract of a script
+- **The typography engine**: [README and profile format](typography-engine/README.md)
 - **The grammar engine**: [README](grammar-engine/README.md), [API reference](grammar-engine/docs/API.en.md) ([français](grammar-engine/docs/API.fr.md)), [architecture](grammar-engine/docs/ARCHITECTURE.md), [writing a language](grammar-engine/docs/WRITING_A_LANGUAGE.md), [lexicon format](grammar-engine/docs/LEXICON.md), [building the lexicons](grammar-engine/docs/BUILDING_LEXICONS.md), [rules](grammar-engine/docs/RULES.md), [examples of interfaces in six languages](grammar-engine/examples/README.md)
 
 ## Layout of the repository
@@ -82,6 +83,7 @@ Dear ImGui and ImGuiColorTextEdit are in `third/`, Hunspell in `binote-app/third
 | Folder | Content |
 | --- | --- |
 | `binote-app` | The application (`src/ui`, `src/common`, `src/project`, `src/analysis`, `src/export`, `src/script`, `src/vcs`), dictionaries, languages, scripts |
+| `typography-engine` | The automatic typography (C++, MIT): one profile per language, while typing or on a text. Independent of Binote |
 | `grammar-engine` | The grammar checker (Python, MIT): rules by language, tagger, lexicons, examples. Independent of Binote |
 | `imgui-md` | Markdown component for Dear ImGui (MIT), independent |
 | `imgui-prose` | Prose editor component for Dear ImGui (MIT), independent |

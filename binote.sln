@@ -7,11 +7,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "binote", "binote-app\binote
 	ProjectSection(ProjectDependencies) = postProject
 		{6F1D3A52-8B2E-4C0A-9D41-2A7E5C1B9F01} = {6F1D3A52-8B2E-4C0A-9D41-2A7E5C1B9F01}
 		{A3C84E17-5D9B-4F62-8E10-7B2D6C4A9E02} = {A3C84E17-5D9B-4F62-8E10-7B2D6C4A9E02}
+		{B7E2C914-3A5D-4E68-9F10-4C8D2A6B1E03} = {B7E2C914-3A5D-4E68-9F10-4C8D2A6B1E03}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imgui-md", "imgui-md\imgui-md.vcxproj", "{6F1D3A52-8B2E-4C0A-9D41-2A7E5C1B9F01}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imgui-prose", "imgui-prose\imgui-prose.vcxproj", "{A3C84E17-5D9B-4F62-8E10-7B2D6C4A9E02}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "typography-engine", "typography-engine\typography-engine.vcxproj", "{B7E2C914-3A5D-4E68-9F10-4C8D2A6B1E03}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +34,10 @@ Global
 		{A3C84E17-5D9B-4F62-8E10-7B2D6C4A9E02}.Debug|x64.Build.0 = Debug|x64
 		{A3C84E17-5D9B-4F62-8E10-7B2D6C4A9E02}.Release|x64.ActiveCfg = Release|x64
 		{A3C84E17-5D9B-4F62-8E10-7B2D6C4A9E02}.Release|x64.Build.0 = Release|x64
+		{B7E2C914-3A5D-4E68-9F10-4C8D2A6B1E03}.Debug|x64.ActiveCfg = Debug|x64
+		{B7E2C914-3A5D-4E68-9F10-4C8D2A6B1E03}.Debug|x64.Build.0 = Debug|x64
+		{B7E2C914-3A5D-4E68-9F10-4C8D2A6B1E03}.Release|x64.ActiveCfg = Release|x64
+		{B7E2C914-3A5D-4E68-9F10-4C8D2A6B1E03}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

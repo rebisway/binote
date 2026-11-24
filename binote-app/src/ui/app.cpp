@@ -452,8 +452,8 @@ bool App::can_close()
 void App::typed_callback(ImGuiProseEditor* editor, const char* typed, void* user_data)
 {
 	App* app = (App*)user_data;
-	// Typography is French; only the curly quotes can be chosen for another language
-	if (!app->_s.auto_typography || (!app->french() && !(app->_s.quote_style == 2 && typed[0] == '"' && typed[1] == 0)))
+	// A language without a profile of its own only has the curly quotes
+	if (!app->_s.auto_typography || (!typography::has_profile() && !(app->_s.quote_style == 2 && typed[0] == '"' && typed[1] == 0)))
 		return;
 	const ImGuiProsePos caret = ImGuiProse::GetCaret(editor);
 	int len = 0;
@@ -483,10 +483,10 @@ void App::typed_callback(ImGuiProseEditor* editor, const char* typed, void* user
 	ImGuiProse::SetCaret(editor, ImGuiProsePos(caret.Line, t.start + (int)t.text.size() + t.caret_extra), false);
 }
 
-// Applies the French typography to the selection, or to the whole destination
+// Applies the typography of the language to the selection, or to the whole destination
 void App::fix_typography(bool whole)
 {
-	if (!french())
+	if (!typography::has_profile())
 	{
 		status(TR("MSG_TYPO_FRENCH_ONLY"));
 		return;

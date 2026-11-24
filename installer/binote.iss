@@ -43,6 +43,7 @@ Source: "..\bin\Release\fonts\*"; DestDir: "{app}\fonts"; Flags: ignoreversion r
 Source: "..\bin\Release\icons\*"; DestDir: "{app}\icons"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\bin\Release\lang\*"; DestDir: "{app}\lang"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\bin\Release\lexicon\*"; DestDir: "{app}\lexicon"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\bin\Release\typography\*"; DestDir: "{app}\typography"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\bin\Release\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\bin\Release\grammar-engine\*"; DestDir: "{app}\grammar-engine"; Excludes: "__pycache__"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion

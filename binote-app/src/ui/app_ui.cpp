@@ -89,6 +89,7 @@ void App::frame()
 	handle_shortcuts();
 	open_pending_link();
 	typography::set_quote_style(_s.quote_style);
+	typography::set_language(_has_project ? _project.language : "fr");
 	draw_menu();
 	draw_script();
 	draw_script_editor();

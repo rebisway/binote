@@ -28,7 +28,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)third\hunspell;$(SolutionDir)third\imgui-1.92.1;$(SolutionDir)third\imgui-1.92.1\backends;$(ThirdPartyDir)\src\third;$(ThirdPartyDir)\src\third\python\313;$(SolutionDir)third\ImGuiColorTextEdit;$(SolutionDir)imgui-md\include;$(SolutionDir)imgui-prose\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)src;$(ProjectDir)third\hunspell;$(SolutionDir)third\imgui-1.92.1;$(SolutionDir)third\imgui-1.92.1\backends;$(ThirdPartyDir)\src\third;$(ThirdPartyDir)\src\third\python\313;$(SolutionDir)third\ImGuiColorTextEdit;$(SolutionDir)imgui-md\include;$(SolutionDir)imgui-prose\include;$(SolutionDir)typography-engine\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;HUNSPELL_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4244;4267;4996;4305</DisableSpecificWarnings>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
@@ -49,7 +49,8 @@ xcopy /E /I /Y /Q "$(ProjectDir)icons" "$(OutDir)icons" &gt;nul
 xcopy /E /I /Y /Q "$(ProjectDir)scripts" "$(OutDir)scripts" &gt;nul
 xcopy /E /I /Y /Q "$(ProjectDir)lexicon" "$(OutDir)lexicon" &gt;nul
 xcopy /E /I /Y /Q "$(ProjectDir)lang" "$(OutDir)lang" &gt;nul
-xcopy /E /I /Y /Q "$(SolutionDir)grammar-engine\grammar_engine" "$(OutDir)grammar-engine" &gt;nul</Command>
+xcopy /E /I /Y /Q "$(SolutionDir)grammar-engine\grammar_engine" "$(OutDir)grammar-engine" &gt;nul
+xcopy /E /I /Y /Q "$(SolutionDir)typography-engine\profiles" "$(OutDir)typography" &gt;nul</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'"><Link><SubSystem>Console</SubSystem></Link></ItemDefinitionGroup>
@@ -127,6 +128,7 @@ xcopy /E /I /Y /Q "$(SolutionDir)grammar-engine\grammar_engine" "$(OutDir)gramma
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\imgui-md\imgui-md.vcxproj"><Project>{6F1D3A52-8B2E-4C0A-9D41-2A7E5C1B9F01}</Project></ProjectReference>
+    <ProjectReference Include="..\typography-engine\typography-engine.vcxproj"><Project>{B7E2C914-3A5D-4E68-9F10-4C8D2A6B1E03}</Project></ProjectReference>
     <ProjectReference Include="..\imgui-prose\imgui-prose.vcxproj"><Project>{A3C84E17-5D9B-4F62-8E10-7B2D6C4A9E02}</Project></ProjectReference>
   </ItemGroup>
   <ItemGroup>

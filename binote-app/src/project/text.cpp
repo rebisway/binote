@@ -20,6 +20,8 @@
 #include "project/text.h"
 #include "common/util.h"
 #include "common/i18n.h"
+#include "common/logger.h"
+#include "typo.h"
 #include <algorithm>
 #include <chrono>
 #include <ctime>
@@ -72,259 +74,141 @@ static std::string to_utf8(const std::u32string& s)
 }
 
 //-----------------------------------------------------------------------------
-// Typography
+// Typography: a thin layer over the typo engine (typography-engine/), one profile per language
 //-----------------------------------------------------------------------------
 
 namespace typography
 {
-	static const char32_t C_NBSP = 0x00A0, C_NNBSP = 0x202F;
-
 	static bool is_letter(char32_t c)
 	{
 		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= 0xC0 && c <= 0x24F && c != 0xD7 && c != 0xF7) || c == 0x153 || c == 0x152;
 	}
 	static bool is_digit(char32_t c)	{ return c >= '0' && c <= '9'; }
-	static bool is_space(char32_t c)	{ return c == ' ' || c == '\t' || c == C_NBSP || c == C_NNBSP; }
 
 	static int g_quote_style = 0;
 	void set_quote_style(int style) { g_quote_style = style; }
 
-	static std::u32string fix_segment(const std::u32string& in)
+	static TypoProfile* g_profile = nullptr;		// the profile of the language, or generic.typo
+	static bool g_specific = false;					// false: the generic profile
+	static std::string g_language;					// the code the profile was loaded for
+	static bool g_loaded = false;
+
+	static std::string read_all(const std::string& path)
 	{
-		const size_t n = in.size();
-		std::u32string s;
-		// Ellipsis, apostrophe, dash
-		for (size_t i = 0; i < n; i++)
+		std::ifstream f(fs::u8path(path), std::ios::binary);
+		return std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+	}
+
+	// Folders which may hold profiles, the first one wins: the user's, the one beside the program, the sources
+	static std::vector<std::string> profile_folders()
+	{
+		const std::string app = util::application_path();
+		return { util::combine(util::data_path(), "typography"), util::combine(app, "typography"), util::combine(app, "../../typography-engine/profiles"),
+			util::combine(app, "../typography-engine/profiles"), util::combine(app, "../../../typography-engine/profiles") };
+	}
+
+	static std::string find_profile(const std::string& code)
+	{
+		std::error_code ec;
+		for (const std::string& d : profile_folders())
 		{
-			const char32_t c = in[i];
-			if (c == '.' && i + 2 < n + 0 && in[i + 1] == '.' && in[i + 2] == '.' && (i + 3 >= n || in[i + 3] != '.') && (i == 0 || in[i - 1] != '.'))
-			{
-				s += U'…';
-				i += 2;
-			}
-			else if (c == '\'' && i > 0 && i + 1 < n && is_letter(in[i - 1]) && is_letter(in[i + 1]))
-				s += U'’';
-			else if (c == '-' && i > 0 && i + 2 < n && in[i + 1] == '-' && std::isspace((int)in[i - 1] & 0x7F) && std::isspace((int)in[i + 2] & 0x7F) && in[i - 1] < 0x80 && in[i + 2] < 0x80)
-			{
-				s += U'–';
-				i += 1;
-			}
-			else
-				s += c;
+			const std::string path = util::combine(d, code + ".typo");
+			if (fs::exists(fs::u8path(path), ec))
+				return path;
 		}
-		// Straight quotes become « and » (or curly quotes, or stay as they are)
-		for (size_t i = 0; i < s.size() && g_quote_style != 1; i++)
-			if (s[i] == '"')
-			{
-				const char32_t prev = i > 0 ? s[i - 1] : U' ';
-				const bool open = i == 0 || prev == ' ' || prev == '\t' || prev == '(' || prev == '[' || prev == U'–' || prev == U'—' || prev == U'«' || prev == U'\u201c';
-				if (g_quote_style == 2)
-					s[i] = open ? U'\u201c' : U'\u201d';
-				else
-					s[i] = open ? U'«' : U'»';
-			}
-		// Spaces inside « »
-		std::u32string t;
-		for (size_t i = 0; i < s.size(); i++)
+		return "";
+	}
+
+	// Loads a profile and the ones it extends. Returns NULL (with a message in the log) when it cannot be read.
+	static TypoProfile* load_profile(const std::string& code, int depth = 0)
+	{
+		const std::string path = find_profile(code);
+		if (path.empty() || depth > 4)
+			return nullptr;
+		const std::string text = read_all(path);
+		TypoProfile* parent = nullptr;
+		const size_t at = text.find("extends");
+		if (at != std::string::npos)
 		{
-			const char32_t c = s[i];
-			if (c == U'«')
+			size_t b = text.find('=', at), e = text.find('\n', at);
+			if (b != std::string::npos && b < e)
 			{
-				t += c;
-				size_t j = i + 1;
-				while (j < s.size() && is_space(s[j]))
-					j++;
-				if (j < s.size())
-					t += C_NNBSP;
-				i = j - 1;
+				std::string name = text.substr(b + 1, e - b - 1);
+				while (!name.empty() && (name.back() == '\r' || name.back() == ' '))
+					name.pop_back();
+				name.erase(0, name.find_first_not_of(" \t"));
+				if (!name.empty())
+					parent = load_profile(name, depth + 1);
 			}
-			else if (is_space(c))
-			{
-				size_t j = i;
-				while (j < s.size() && is_space(s[j]))
-					j++;
-				if (j < s.size() && s[j] == U'»')
-				{
-					t += C_NNBSP;
-					t += U'»';
-					i = j;
-				}
-				else
-				{
-					t.append(s, i, j - i);
-					i = j - 1;
-				}
-			}
-			else if (c == U'»')
-			{
-				if (t.empty() || t.back() != C_NNBSP)
-					t += C_NNBSP;
-				t += c;
-			}
-			else
-				t += c;
 		}
-		// Before ; ! ? :
-		std::u32string o;
-		for (size_t i = 0; i < t.size(); i++)
-		{
-			const char32_t c = t[i];
-			if (c == ';' || c == '!' || c == '?' || c == ':')
+		std::string error;
+		TypoProfile* p = Typo::CreateProfile(text.c_str(), parent, &error);
+		if (parent)
+			Typo::DestroyProfile(parent);
+		if (!p)
+			Logger::warning("Typography profile " + path + ": " + error);
+		return p;
+	}
+
+	// The profile of a language: "fr-FR" looks for fr-FR.typo, then fr.typo, then generic.typo
+	void set_language(const std::string& code)
+	{
+		if (g_loaded && code == g_language)
+			return;
+		g_loaded = true;
+		g_language = code;
+		if (g_profile)
+			Typo::DestroyProfile(g_profile);
+		g_profile = nullptr;
+		g_specific = false;
+		std::string lower;
+		for (char c : code)
+			lower += (char)tolower((unsigned char)c);
+		std::vector<std::string> tries = { lower };
+		if (lower.size() > 2)
+			tries.push_back(lower.substr(0, 2));
+		for (const std::string& t : tries)
+			if (!t.empty() && (g_profile = load_profile(t)) != nullptr)
 			{
-				size_t k = o.size();
-				while (k > 0 && is_space(o[k - 1]))
-					k--;
-				const bool prev_ok = k > 0 && (is_letter(o[k - 1]) || is_digit(o[k - 1]) || o[k - 1] == ')' || o[k - 1] == ']' || o[k - 1] == U'»'
-					|| o[k - 1] == U'…' || o[k - 1] == U'’' || o[k - 1] == '*' || o[k - 1] == '_' || o[k - 1] == '"');
-				const char32_t next = i + 1 < t.size() ? t[i + 1] : U' ';
-				const bool next_ok = i + 1 >= t.size() || is_space(next) || (c != ':' && (next == ')' || next == '"' || next == U'»' || next == '*' || next == '_' || next == ']'));
-				if (prev_ok && next_ok)
-				{
-					o.resize(k);
-					o += (c == ':') ? C_NBSP : C_NNBSP;
-				}
+				g_specific = true;
+				return;
 			}
-			o += c;
-		}
+		g_profile = load_profile("generic");
+		if (!g_profile)
+			Logger::warning("Typography: no profile found (folder typography beside the program)");
+	}
+
+	bool has_profile() { return g_specific; }
+
+	static TypoOptions options(bool markdown)
+	{
+		TypoOptions o;
+		o.QuoteStyle = g_quote_style;
+		o.Markdown = markdown;
 		return o;
 	}
 
 	std::string fix_line(const std::string& line, bool markdown)
 	{
-		bool blank = true;
-		for (char c : line)
-			if (c != ' ' && c != '\t')
-				blank = false;
-		if (blank)
-			return line;
-		if (!markdown)
-			return to_utf8(fix_segment(to_u32(line)));
-		// Code spans stay as they are
-		std::string out, current;
-		bool in_code = false;
-		for (char c : line)
-		{
-			if (c == '`')
-			{
-				if (!in_code)
-					out += to_utf8(fix_segment(to_u32(current)));
-				else
-					out += current;
-				out += '`';
-				current.clear();
-				in_code = !in_code;
-			}
-			else
-				current += c;
-		}
-		out += in_code ? current : to_utf8(fix_segment(to_u32(current)));
-		return out;
+		return g_profile ? Typo::FixLine(g_profile, options(markdown), line) : line;
 	}
 
 	std::string fix_text(const std::string& text, bool markdown)
 	{
-		std::string out;
-		bool in_fence = false;
-		size_t pos = 0;
-		while (pos <= text.size())
-		{
-			size_t eol = text.find('\n', pos);
-			if (eol == std::string::npos)
-				eol = text.size();
-			const std::string line = text.substr(pos, eol - pos);
-			size_t a = line.find_first_not_of(" \t");
-			const bool fence = markdown && a != std::string::npos && (line.compare(a, 3, "```") == 0 || line.compare(a, 3, "~~~") == 0);
-			if (fence)
-			{
-				in_fence = !in_fence;
-				out += line;
-			}
-			else
-				out += in_fence ? line : fix_line(line, markdown);
-			if (eol < text.size())
-				out += '\n';
-			pos = eol + 1;
-		}
-		return out;
+		return g_profile ? Typo::FixText(g_profile, options(markdown), text) : text;
 	}
 
 	Typed on_typed(const std::string& typed, const std::string& before)
 	{
 		Typed r;
-		if (typed.size() != 1 || before.empty())
+		if (!g_profile)
 			return r;
-		const char c = typed[0];
-		// The last three code points of 'before' with their byte positions
-		struct Cp { char32_t cp; int pos; };
-		std::vector<Cp> cps;
-		for (int i = (int)before.size(); i > 0 && cps.size() < 4;)
-		{
-			int j = i - 1;
-			while (j > 0 && ((unsigned char)before[j] & 0xC0) == 0x80)
-				j--;
-			cps.push_back({ to_u32(before.substr(j, i - j))[0], j });
-			i = j;
-		}
-		const int end = (int)before.size();
-		auto at = [&](size_t k) -> Cp { return k < cps.size() ? cps[k] : Cp{ 0, -1 }; };		// 0 = typed, 1 = before it...
-		const Cp prev = at(1);
-
-		switch (c)
-		{
-		case '"':
-		{
-			if (g_quote_style == 1)
-				return r;										// straight quotes: nothing to replace
-			const bool open = prev.pos < 0 || prev.cp == ' ' || prev.cp == '\t' || prev.cp == '(' || prev.cp == '[' || prev.cp == U'–' || prev.cp == U'—';
-			r.valid = true;
-			if (g_quote_style == 2)
-			{
-				r.start = end - 1; r.length = 1; r.text = open ? "\xE2\x80\x9C" : "\xE2\x80\x9D";
-				return r;
-			}
-			if (open)
-			{
-				r.start = end - 1; r.length = 1; r.text = std::string("\xC2\xAB") + NNBSP;
-			}
-			else if (prev.cp == ' ' || prev.cp == C_NBSP || prev.cp == C_NNBSP)
-			{
-				r.start = prev.pos; r.length = end - prev.pos; r.text = std::string(NNBSP) + "\xC2\xBB";
-			}
-			else
-			{
-				r.start = end - 1; r.length = 1; r.text = std::string(NNBSP) + "\xC2\xBB";
-			}
-			return r;
-		}
-		case '\'':
-			r.valid = true; r.start = end - 1; r.length = 1; r.text = "\xE2\x80\x99";
-			return r;
-		case '.':
-			if (end >= 3 && before.compare(end - 3, 3, "...") == 0 && (end < 4 || before[end - 4] != '.'))
-			{
-				r.valid = true; r.start = end - 3; r.length = 3; r.text = "\xE2\x80\xA6";
-			}
-			return r;
-		case ' ':
-		{
-			// A space typed after "x;" "x!" "x?" "x:" : the no-break space goes before the sign
-			const Cp p = at(1), x = at(2);
-			if (p.pos >= 0 && x.pos >= 0 && (p.cp == ';' || p.cp == '!' || p.cp == '?' || p.cp == ':'))
-			{
-				const std::string sp = p.cp == ':' ? NBSP : NNBSP;
-				const std::string sign(1, (char)p.cp);
-				if (is_letter(x.cp) || is_digit(x.cp) || x.cp == ')' || x.cp == ']' || x.cp == U'»' || x.cp == U'…' || x.cp == U'’')
-				{
-					r.valid = true; r.start = p.pos; r.length = 1; r.text = sp + sign;
-				}
-				else if (x.cp == ' ')
-				{
-					r.valid = true; r.start = x.pos; r.length = 2; r.text = sp + sign;
-				}
-			}
-			return r;
-		}
-		}
+		const TypoEdit e = Typo::OnTyped(g_profile, options(false), typed, before);
+		r.valid = e.Valid;
+		r.start = e.Start;
+		r.length = e.Length;
+		r.text = e.Text;
+		r.caret_extra = e.CaretExtra;
 		return r;
 	}
 }

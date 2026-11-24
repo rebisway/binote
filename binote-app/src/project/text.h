@@ -26,8 +26,8 @@
 #include <vector>
 
 //-----------------------------------------------------------------------------
-// French typography: « », ’, …, no-break spaces.
-// Convention: U+202F (narrow no-break) before ; ! ? and inside « », U+00A0 (no-break) before ":".
+// Automatic typography, driven by a profile per language (typography-engine/profiles/*.typo): quotation marks, spaces before the signs,
+// apostrophe, ellipsis, dashes. Binote looks for the profiles in %AppData%/Binote/typography, then beside the program.
 //-----------------------------------------------------------------------------
 namespace typography
 {
@@ -36,6 +36,9 @@ namespace typography
 
 	// Quotation marks written with the key ": 0 guillemets « » with narrow no-break spaces, 1 the straight quotes stay, 2 curly quotes “ ”
 	void set_quote_style(int style);
+	// Loads the profile of a language ("fr", "fr-FR"...): the code gives fr-fr.typo, then fr.typo, then generic.typo
+	void set_language(const std::string& code);
+	bool has_profile();							// false: only the generic profile (curly quotes), the language has no profile of its own
 	std::string fix_text(const std::string& text, bool markdown);			// code blocks and code spans are left alone
 	std::string fix_line(const std::string& line, bool markdown);
 

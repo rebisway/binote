@@ -45,6 +45,7 @@
     <PostBuildEvent>
       <Command>xcopy /E /I /Y /Q "$(ProjectDir)fonts" "$(OutDir)fonts" &gt;nul
 xcopy /E /I /Y /Q "$(ProjectDir)dict" "$(OutDir)dict" &gt;nul
+powershell -NoProfile -ExecutionPolicy Bypass -File "$(ProjectDir)tools\fetch-dictionaries.ps1" -Output "$(OutDir)dict"
 xcopy /E /I /Y /Q "$(ProjectDir)icons" "$(OutDir)icons" &gt;nul
 xcopy /E /I /Y /Q "$(ProjectDir)scripts" "$(OutDir)scripts" &gt;nul
 xcopy /E /I /Y /Q "$(ProjectDir)lexicon" "$(OutDir)lexicon" &gt;nul

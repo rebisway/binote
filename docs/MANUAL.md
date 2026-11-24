@@ -182,7 +182,7 @@ The **Contents** button of the toolbar (or **Tools > Generate the table of conte
 
 The list gives, for each problem, the line, the type, the text, the proposed correction and the explanation. A click selects the passage in the destination. It is updated a moment after each change.
 
-The dictionaries of the spell checker are searched in `dict`, in the data folder of the user and in LibreOffice.
+Binote ships the dictionaries of French, English (US, UK), Spanish (Spain, Argentina), German, Italian, Portuguese (Brazil, Portugal), Polish, Czech and Russian (`dict` folder, downloaded when Binote is built, licenses in [`binote-app/dict`](../binote-app/dict/README_dictionaries.md)). Others go in `dict` of the data folder of the user (`%AppData%\Binote\dict`); those of LibreOffice and of the system are found too, and listed apart under **Other dictionaries** in the language menu.
 
 ### The grammar engine
 

@@ -55,14 +55,14 @@ At every build (also when only a resource changed) the folders below are copied 
 | Folder | Content |
 |---|---|
 | `fonts/` | the DejaVu and Roboto fonts |
-| `dict/` | the Hunspell dictionaries (French) |
+| `dict/` | the Hunspell dictionaries: French in the repository, the others (English, Spanish, German, Italian, Portuguese, Polish, Czech, Russian) downloaded by the build into `bin/Release/dict` with their licenses (`tools/fetch-dictionaries.ps1`, needs PowerShell and a network the first time; without them the build goes on with French only) |
 | `icons/` | the icons |
 | `scripts/` | the delivered Python scripts and their library |
 | `lexicon/` | the lexicon of the C++ grammar checker |
 | `lang/` | the interface languages |
 | `grammar-engine/` | the Python grammar engine (the package itself), copied from `../grammar-engine/grammar_engine` |
 
-The dictionaries are also searched in `%AppData%\Binote\dict` and in the extensions of LibreOffice.
+The dictionaries are also searched in `%AppData%\Binote\dict`, and in the extensions of LibreOffice (listed apart in the menu).
 
 ## Python is optional
 

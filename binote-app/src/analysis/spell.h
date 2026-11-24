@@ -41,7 +41,8 @@ public:
 	bool available() const { return _hunspell != nullptr; }
 	const std::string& code() const { return _code; }
 	// Codes of the dictionaries found (fr, en_US...)
-	static std::vector<std::string> languages();
+	// Codes of the dictionaries found. bundled_only: only those of Binote (beside the program, in the folder of the user), not the ones of LibreOffice or of the system
+	static std::vector<std::string> languages(bool bundled_only = false);
 	const std::string& folder() const { return _folder; }
 
 	bool check(const std::string& word);									// word as typed (UTF-8)

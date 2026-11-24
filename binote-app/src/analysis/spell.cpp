@@ -34,11 +34,16 @@ static std::string personal_file()
 }
 
 // Folders which may hold dictionaries
-static std::vector<std::string> dictionary_folders()
+static std::vector<std::string> dictionary_folders(bool bundled_only = false)
 {
 	const std::string app = util::application_path();
 	std::vector<std::string> dirs = { util::combine(app, "dict"), util::combine(util::data_path(), "dict"), util::combine(app, "../../binote-app/dict"),
 		util::combine(app, "../binote-app/dict"), util::combine(app, "../../dict"), "/usr/share/hunspell", "/usr/share/myspell" };
+	if (bundled_only)
+	{
+		dirs.resize(5);								// the folder of the program, the one of the user, the ones of the sources
+		return dirs;
+	}
 	// The extensions of LibreOffice: share/extensions/dict-*
 	std::error_code ec;
 	for (const char* root : { "C:/Program Files/LibreOffice/share/extensions", "/usr/lib/libreoffice/share/extensions", "/opt/libreoffice/share/extensions" })
@@ -49,11 +54,11 @@ static std::vector<std::string> dictionary_folders()
 }
 
 // Codes of the dictionaries found (a .dic with its .aff) in the folders above, sorted
-std::vector<std::string> Spell::languages()
+std::vector<std::string> Spell::languages(bool bundled_only)
 {
 	std::vector<std::string> codes;
 	std::error_code ec;
-	for (const std::string& dir : dictionary_folders())
+	for (const std::string& dir : dictionary_folders(bundled_only))
 		for (const auto& e : std::filesystem::directory_iterator(std::filesystem::u8path(dir), ec))
 		{
 			if (e.path().extension() != ".dic")

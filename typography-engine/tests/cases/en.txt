@@ -1,0 +1,7 @@
+profile: en
+fix: He said "hi" there => He said “hi” there
+fix1: He said "hi" there => He said "hi" there
+fix: don't wait... => don’t wait…
+fix: Really ? => Really ?
+type: He said "hi" there => He said “hi” there
+type: don't => don’t

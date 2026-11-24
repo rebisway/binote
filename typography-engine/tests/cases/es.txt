@@ -1,0 +1,6 @@
+profile: es
+fix: Dijo "hola" ya => Dijo «hola» ya
+fix2: Dijo "hola" ya => Dijo “hola” ya
+fix: Bueno... => Bueno…
+fix: ¿Qué? => ¿Qué?
+type: Dijo "hola" ya => Dijo «hola» ya

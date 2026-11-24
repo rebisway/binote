@@ -1,0 +1,19 @@
+# Spanish typography: angle quotation marks without spaces (RAE), typographic apostrophe and ellipsis.
+# The inverted marks ¿ ¡ are not added yet.
+
+[profile]
+name = Spanish
+
+[quotes]
+open = «
+close = »
+alt_open = “
+alt_close = ”
+open_after = space tab ( [ – — « “ ¿ ¡
+open_after_typed = space tab ( [ – —
+
+[apostrophe]
+char = ’
+
+[ellipsis]
+char = …

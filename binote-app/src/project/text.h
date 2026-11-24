@@ -38,6 +38,12 @@ namespace typography
 	void set_quote_style(int style);
 	// Loads the profile of a language ("fr", "fr-FR"...): the code gives fr-fr.typo, then fr.typo, then generic.typo
 	void set_language(const std::string& code);
+	std::string profile_name();					// name and file of the profile in use (empty: none)
+	std::string profile_path();
+	std::string user_folder();					// where the profiles of the user are (%AppData%/Binote/typography)
+	bool profile_is_user();						// the profile in use comes from the folder of the user
+	void reload();								// read the profiles again
+	bool create_user_copy();					// copies the profile in use to the folder of the user, to edit it
 	bool has_profile();							// false: only the generic profile (curly quotes), the language has no profile of its own
 	std::string fix_text(const std::string& text, bool markdown);			// code blocks and code spans are left alone
 	std::string fix_line(const std::string& line, bool markdown);

@@ -92,6 +92,7 @@ namespace typography
 	static bool g_specific = false;					// false: the generic profile
 	static std::string g_language;					// the code the profile was loaded for
 	static bool g_loaded = false;
+	static std::string g_path, g_name;				// the file of the profile in use, and its name
 
 	static std::string read_all(const std::string& path)
 	{
@@ -143,6 +144,11 @@ namespace typography
 		}
 		std::string error;
 		TypoProfile* p = Typo::CreateProfile(text.c_str(), parent, &error);
+		if (p && depth == 0)
+		{
+			g_path = path;
+			g_name = Typo::GetName(p);
+		}
 		if (parent)
 			Typo::DestroyProfile(parent);
 		if (!p)
@@ -161,6 +167,8 @@ namespace typography
 			Typo::DestroyProfile(g_profile);
 		g_profile = nullptr;
 		g_specific = false;
+		g_path.clear();
+		g_name.clear();
 		std::string lower;
 		for (char c : code)
 			lower += (char)tolower((unsigned char)c);
@@ -179,6 +187,29 @@ namespace typography
 	}
 
 	bool has_profile() { return g_specific; }
+
+	std::string profile_name()	{ return g_name; }
+	std::string profile_path()	{ return g_path; }
+	std::string user_folder()	{ return util::combine(util::data_path(), "typography"); }
+	bool profile_is_user()		{ return !g_path.empty() && g_path.compare(0, user_folder().size(), user_folder()) == 0; }
+
+	// Profiles are read again the next time set_language is called
+	void reload() { g_loaded = false; }
+
+	// Copies the profile in use to the folder of the user, where it can be edited and replaces the shipped one. False if it is already there.
+	bool create_user_copy()
+	{
+		if (g_path.empty() || profile_is_user())
+			return false;
+		std::error_code ec;
+		fs::create_directories(fs::u8path(user_folder()), ec);
+		const std::string target = util::combine(user_folder(), fs::u8path(g_path).filename().u8string());
+		fs::copy_file(fs::u8path(g_path), fs::u8path(target), fs::copy_options::skip_existing, ec);
+		if (ec)
+			return false;
+		reload();
+		return true;
+	}
 
 	static TypoOptions options(bool markdown)
 	{

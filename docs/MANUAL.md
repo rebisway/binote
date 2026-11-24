@@ -112,7 +112,7 @@ Type in the work. The original cannot be modified, except in the *Original* view
   | Polish, Czech, Russian | „ ”, „ “, « » | no-break space after the one-letter words, … |
   | Chinese, Japanese | not converted | full-width signs after Chinese or Japanese text, …… |
 
-  To change a rule or add a language, copy a profile from the `typography` folder to `%AppData%\Binote\typography`, rename it with the code of the language (`nl.typo`) and edit it: the format is described in the [README of the engine](../typography-engine/README.md). A profile in your folder replaces the one shipped. The project language `fr-CA` uses `fr-ca.typo` if there is one, else `fr.typo`.
+  To change a rule or add a language, copy a profile from the `typography` folder to `%AppData%\Binote\typography`, rename it with the code of the language (`nl.typo`) and edit it: the format is described in the [README of the engine](../typography-engine/README.md). A profile in your folder replaces the one shipped. The preferences (**General** tab, below the choice of the quotation marks) show the profile in use and have three buttons: **Copy it to edit it** (copies it to your folder), **Open your folder** and **Reload** (reads the profiles again after an edit). The project language `fr-CA` uses `fr-ca.typo` if there is one, else `fr.typo`.
 - Spaces which look alike are shown if **Show no-break spaces** is on (**View** menu). Insert them with **Ctrl+Shift+Space** (no-break) and **Ctrl+Alt+Space** (narrow no-break), or with the character map.
 - **Show invisible characters** (**View** menu) marks every invisible typographic character except the normal space, with one colour per kind. The submenu **Colour code of the invisible characters**, just below, shows the key.
 

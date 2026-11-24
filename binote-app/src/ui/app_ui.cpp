@@ -1720,6 +1720,37 @@ void App::draw_prefs()
 	if (ImGui::RadioButton(TR("PREF_QUOTE_STRAIGHT"), &quotes, 1)) { _s.quote_style = quotes; _s.save(); }
 	if (ImGui::RadioButton(TR("PREF_QUOTE_CURLY"), &quotes, 2)) { _s.quote_style = quotes; _s.save(); }
 	ImGui::Separator();
+	ImGui::TextUnformatted(TR("PREF_TYPO_PROFILE"));
+	{
+		const std::string name = typography::profile_name();
+		if (!typography::has_profile())
+			ImGui::TextDisabled("%s", TR("PREF_TYPO_NONE"));
+		else
+		{
+			ImGui::Text("%s%s", name.c_str(), typography::profile_is_user() ? TR("PREF_TYPO_USER") : "");
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("%s", typography::profile_path().c_str());
+		}
+		if (typography::has_profile() && !typography::profile_is_user() && ImGui::Button(TR("PREF_TYPO_COPY")))
+		{
+			if (typography::create_user_copy())
+				status(TR("MSG_TYPO_COPIED"));
+		}
+		ImGui::SameLine();
+		if (ImGui::Button(TR("PREF_TYPO_FOLDER")))
+		{
+			std::error_code ec;
+			std::filesystem::create_directories(std::filesystem::u8path(typography::user_folder()), ec);
+			dialog::open_folder(typography::user_folder());
+		}
+		ImGui::SameLine();
+		if (ImGui::Button(TR("PREF_TYPO_RELOAD")))
+		{
+			typography::reload();
+			status(TR("MSG_TYPO_RELOADED"));
+		}
+	}
+	ImGui::Separator();
 	ImGui::TextUnformatted(TR("PREF_SYSTEM_OPEN"));
 	int mode = _s.system_open_mode;
 	if (ImGui::RadioButton(TR("PREF_OPEN_READING"), &mode, 0)) { _s.system_open_mode = mode; _s.save(); }

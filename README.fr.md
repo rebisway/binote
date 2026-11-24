@@ -77,6 +77,7 @@ La documentation est en anglais, sauf la référence de l'API du moteur grammati
 - [Tests](docs/TESTING.md) : le pont de test et ses commandes, les tests du moteur, les captures d'écran
 - [Langues de l'interface](docs/LANGUAGES.md) : le format des fichiers de langue, comment ajouter une langue
 - [Scripts](binote-app/scripts/README_scripts.txt) : le contrat d'un script
+- **Le moteur de typographie** : [README et format des profils](typography-engine/README.md)
 - **Le moteur grammatical** : [README](grammar-engine/README.md), [référence de l'API](grammar-engine/docs/API.fr.md) ([English](grammar-engine/docs/API.en.md)), [architecture](grammar-engine/docs/ARCHITECTURE.md), [écrire une langue](grammar-engine/docs/WRITING_A_LANGUAGE.md), [format du lexique](grammar-engine/docs/LEXICON.md), [fabriquer les lexiques](grammar-engine/docs/BUILDING_LEXICONS.md), [règles](grammar-engine/docs/RULES.md), [exemples d'interfaces en six langages](grammar-engine/examples/README.md)
 
 ## Organisation du dépôt
@@ -84,6 +85,7 @@ La documentation est en anglais, sauf la référence de l'API du moteur grammati
 | Dossier | Contenu |
 | --- | --- |
 | `binote-app` | L'application (`src/ui`, `src/common`, `src/project`, `src/analysis`, `src/export`, `src/script`, `src/vcs`), dictionnaires, langues, scripts |
+| `typography-engine` | La typographie automatique (C++, MIT) : un profil par langue, à la frappe ou sur un texte. Indépendant de Binote |
 | `grammar-engine` | Le correcteur grammatical (Python, MIT) : règles par langue, étiqueteur, lexiques, exemples. Indépendant de Binote |
 | `imgui-md` | Composant Markdown pour Dear ImGui (MIT), indépendant |
 | `imgui-prose` | Composant d'édition de prose pour Dear ImGui (MIT), indépendant |

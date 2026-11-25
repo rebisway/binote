@@ -250,6 +250,8 @@ namespace
 					r.p++;
 				if (key == "Order")
 					p.config_order = items;
+				else if (key == "Excluded")
+					p.config_excluded = items;
 			}
 			else
 			{
@@ -375,15 +377,22 @@ void Project::refresh()
 		dest_root.pop_back();
 
 	std::vector<std::string> files;
+	excluded.clear();
 	std::error_code ec;
 	for (const auto& entry : fs::directory_iterator(fs::u8path(source_root), ec))
 	{
 		if (!entry.is_regular_file())
 			continue;
 		const std::string e = util::extension(entry.path().u8string());
-		if (e == ".md" || e == ".markdown" || e == ".txt")
-			files.push_back(entry.path().filename().u8string());
+		if (e != ".md" && e != ".markdown" && e != ".txt")
+			continue;
+		const std::string name = entry.path().filename().u8string();
+		if (std::find(config_excluded.begin(), config_excluded.end(), name) != config_excluded.end())
+			excluded.push_back(name);
+		else
+			files.push_back(name);
 	}
+	std::sort(excluded.begin(), excluded.end(), util::natural_less);
 	std::vector<std::string> ordered;
 	for (const std::string& n : config_order)
 		if (std::find(files.begin(), files.end(), n) != files.end() && std::find(ordered.begin(), ordered.end(), n) == ordered.end())
@@ -411,6 +420,50 @@ void Project::refresh()
 		}
 		docs.push_back(d);
 	}
+}
+
+// Takes a chapter out of the project: the file stays where it is, it is only not listed, exported or searched any more
+bool Project::exclude(int index)
+{
+	if (!is_folder || index < 0 || index >= (int)docs.size() || docs.size() < 2)
+		return false;
+	const std::string rel = docs[index].rel;
+	docs.erase(docs.begin() + index);
+	if (std::find(config_excluded.begin(), config_excluded.end(), rel) == config_excluded.end())
+		config_excluded.push_back(rel);
+	excluded.push_back(rel);
+	std::sort(excluded.begin(), excluded.end(), util::natural_less);
+	config_order.clear();
+	for (const Doc& d : docs)
+		config_order.push_back(d.rel);
+	save_config();
+	return true;
+}
+
+// Puts an excluded file back in the project (at the end of the chapters)
+void Project::include_again(const std::string& rel)
+{
+	config_excluded.erase(std::remove(config_excluded.begin(), config_excluded.end(), rel), config_excluded.end());
+	config_order.clear();
+	for (const Doc& d : docs)
+		config_order.push_back(d.rel);
+	config_order.push_back(rel);
+	save_config();
+	refresh();
+}
+
+// Puts a chapter at the place of another one: the others shift
+void Project::move_to(int from, int to)
+{
+	if (!is_folder || from < 0 || to < 0 || from >= (int)docs.size() || to >= (int)docs.size() || from == to)
+		return;
+	Doc d = docs[from];
+	docs.erase(docs.begin() + from);
+	docs.insert(docs.begin() + to, d);
+	config_order.clear();
+	for (const Doc& x : docs)
+		config_order.push_back(x.rel);
+	save_config();
 }
 
 // Moves a chapter up or down in the order and saves it
@@ -456,6 +509,14 @@ void Project::save_config() const
 	std::string o = "{\n  \"Name\": \"" + json_escape(name) + "\",\n  \"Destination\": \"" + json_escape(config_destination) + "\",\n" + (config_source.empty() ? std::string() : "  \"Source\": \"" + json_escape(config_source) + "\",\n") + "  \"Language\": \""+ json_escape(language) + "\",\n  \"Order\": [";
 	for (size_t i = 0; i < order.size(); i++)
 		o += std::string(i ? "," : "") + "\n    \"" + json_escape(order[i]) + "\"";
-	o += order.empty() ? "]\n}\n" : "\n  ]\n}\n";
+	o += order.empty() ? "]" : "\n  ]";
+	if (!config_excluded.empty())
+	{
+		o += ",\n  \"Excluded\": [";
+		for (size_t i = 0; i < config_excluded.size(); i++)
+			o += std::string(i ? "," : "") + "\n    \"" + json_escape(config_excluded[i]) + "\"";
+		o += "\n  ]";
+	}
+	o += "\n}\n";
 	util::write_text(config_path(), o);
 }

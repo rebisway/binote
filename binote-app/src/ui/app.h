@@ -325,11 +325,13 @@ private:
 	int _problems_version = -1;
 	double _problems_due = -1.0;
 	bool _show_problems = false;
+	bool _show_excluded = false;					// window of the excluded files
 	void toggle_spell();
 	void toggle_grammar();
 	void draw_project_languages();
 	void collect_problems();
 	void draw_problems();
+	void draw_excluded();
 
 	// Grammar (grammar.*): the issues of the lines of the destination, kept by text so only the lines which changed are checked again
 	grammar::Engine _grammar;
@@ -463,6 +465,17 @@ private:
 	void draw_toolbar();
 	void draw_body();
 	void draw_tree(float width, float height);
+	void exclude_doc(int index);					// takes a chapter out of the project (the file stays in the folder)
+	void include_doc(const std::string& rel);		// puts an excluded file back
+	int _reorder_from = -1, _reorder_to = -1;		// drag and drop in the tree, done after the tree is drawn
+	int _tree_press = -1;							// chapter on which the mouse was pressed: opened on release, unless it was dragged
+	bool _tree_dragged = false;
+	bool _refresh_request = false;
+	void reorder_doc(int from, int to);
+	void refresh_project();							// reads the folder again: new, removed or renamed files
+	int _exclude_request = -1;						// chapter to take out of the project, done after the tree is drawn
+	std::string _include_request;					// file to put back
+	void read_headings();							// headings of every chapter
 	void draw_pane(Pane& pane, const char* id, float width, float height);
 	void draw_status();
 	void draw_log();

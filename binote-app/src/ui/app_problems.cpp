@@ -190,3 +190,43 @@ void App::draw_problems()
 	ImGui::EndChild();
 	ImGui::End();
 }
+
+// Window of the excluded files: the files of the folder which are not chapters of the project, with a button to put each one back
+void App::draw_excluded()
+{
+	ImGui::SetNextWindowSize(ImVec2(420.0f, 260.0f), ImGuiCond_FirstUseEver);
+	if (!ImGui::Begin(TR("DLG_EXCLUDED_TITLE"), &_show_excluded))
+	{
+		ImGui::End();
+		return;
+	}
+	ImGui::PushTextWrapPos(0.0f);
+	ImGui::TextDisabled("%s", TR("EXCLUDED_HELP"));
+	ImGui::PopTextWrapPos();
+	ImGui::Separator();
+	if (!_has_project || !_project.is_folder || _project.excluded.empty())
+		ImGui::TextUnformatted(TR("EXCLUDED_NONE"));
+	else
+	{
+		std::string back;
+		if (ImGui::BeginTable("##excluded", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp))
+		{
+			for (const std::string& name : _project.excluded)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+				ImGui::AlignTextToFramePadding();
+				ImGui::TextUnformatted(name.c_str());
+				ImGui::TableSetColumnIndex(1);
+				ImGui::PushID(name.c_str());
+				if (ImGui::SmallButton(TR("TREE_INCLUDE")))
+					back = name;
+				ImGui::PopID();
+			}
+			ImGui::EndTable();
+		}
+		if (!back.empty())
+			include_doc(back);
+	}
+	ImGui::End();
+}

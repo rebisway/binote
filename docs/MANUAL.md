@@ -24,7 +24,7 @@ Binote is made to rewrite a text paragraph by paragraph, in a **dual view** (the
 
 ![Main window](images/main-light.png)
 
-- **Left**: the project tree (chapters and their headings; a click goes there). **F9** shows or hides it.
+- **Left**: the project tree (chapters and their headings; a click goes there). **F9** shows or hides it. A **right click** on a chapter gives **Exclude from the project**: the file stays in the folder but is not a chapter any more (it is not listed, searched, counted or exported). The excluded files are not in the tree: the **⊘** button at the top of the tree opens the window *Excluded files*, with a **Put back** button for each one (it goes to the end of the chapters). Chapters are reordered by **dragging** them in the tree (or with the arrows), and the **↻** button of the tree reads the folder again, for files added, removed or renamed outside Binote (the chapter on screen and its unsaved changes are kept). The project must keep at least one chapter, and the choice is saved in `binote.json` (`"Excluded"`).
 - **Middle**: the **original**, the text you start from, read-only. Its title bar is blue.
 - **Right**: the **work**, where you write. Its title bar is green.
 - The two columns of numbers are the **line numbers** (grey) and the **paragraph numbers** (orange). A paragraph is a line which is not blank.

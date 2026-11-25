@@ -47,6 +47,9 @@ Any other command goes to the application. Arguments are split on spaces; a path
 | `sysopen PATH`, `sysmode N` | open as the system does ("Open with"); the mode of opening files given by the system |
 | `save`, `savestate` | save the destination; save the state of the session |
 | `doc N` | go to the chapter N |
+| `excluded` | open the window of the excluded files |
+| `reorder FROM TO`, `refresh` | move a chapter in the tree, read the folder again |
+| `exclude N` / `include FILE` | take the chapter N out of the project / put an excluded file back |
 | `goto N [p]` | go to the line N (or the paragraph N with `p`) |
 | `find TEXT` | open find and go to the next match (quote a text with spaces) |
 | `findopts REGEX CASE WORD FIND [REPLACE]` | set the options (0 or 1 each) and the texts; prints `matches=N error=...` |

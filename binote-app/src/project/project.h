@@ -58,6 +58,8 @@ public:
 												// (set, e.g. "src": the work is in the project folder, tracked by the version control, and the originals are copied there once)
 	std::string config_destination = "dst";		// relative to the source folder, or absolute
 	std::vector<std::string> config_order;
+	std::vector<std::string> config_excluded;		// files of the folder which are not chapters of the project (binote.json: "Excluded")
+	std::vector<std::string> excluded;				// the excluded files which are in the folder (set by refresh)
 	std::vector<Doc> docs;
 
 	static bool config_exists(const std::string& folder);
@@ -66,6 +68,9 @@ public:
 	static bool open_file(const std::string& file, const std::string& destination_file, Project& out);
 
 	void refresh();									// reads the folder again, applies the order
+	bool exclude(int index);						// takes a chapter out of the project (the file is not touched) and saves the project file
+	void include_again(const std::string& rel);	// puts an excluded file back, at the end, and saves
+	void move_to(int from, int to);				// puts the chapter at the place of another one (drag and drop) and saves
 	void move(int index, int delta);				// reorder chapters and save the project file
 	void set_destination(const std::string& folder);
 	void save_config() const;						// binote.json in the source folder (folders only)

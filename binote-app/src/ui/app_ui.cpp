@@ -116,6 +116,7 @@ void App::frame()
 	if (_show_charmap) draw_charmap();
 	draw_export();
 	if (_show_problems) draw_problems();
+	if (_show_excluded) draw_excluded();
 	draw_about();
 	if (_show_names) draw_names();
 	draw_notes();
@@ -903,7 +904,17 @@ void App::draw_tree(float width, float height)
 	{ const std::string head = _project.is_folder ? i18n::fmt(TR("TREE_PROJECT"), _project.name.c_str()) : std::string(TR("TREE_FILE")); ImGui::TextUnformatted(head.c_str()); }
 	if (_project.is_folder)
 	{
-		ImGui::SameLine(width - 74.0f);
+		ImGui::SameLine(width - 134.0f);
+		if (ImGui::SmallButton("\xE2\x8A\x98"))
+			_show_excluded = !_show_excluded;
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("%s", i18n::fmt(TR("TREE_EXCLUDED_BUTTON"), std::to_string(_project.excluded.size()).c_str()).c_str());
+		ImGui::SameLine();
+		if (ImGui::SmallButton("\xE2\x86\xBB"))
+			_refresh_request = true;
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("%s", TR("TREE_REFRESH"));
+		ImGui::SameLine();
 		if (ImGui::SmallButton("\xE2\x96\xB2") && _cur > 0)
 		{
 			_project.move(_cur, -1);
@@ -928,7 +939,35 @@ void App::draw_tree(float width, float height)
 		const std::string label = std::string(d.dirty ? "\xE2\x97\x8F " : "") + d.rel;
 		const bool open = ImGui::TreeNodeEx((void*)(intptr_t)(i + 1), flags, "%s", label.c_str());
 		if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
-			request_open_doc(i);
+		{
+			_tree_press = i;							// opened when the mouse is released, unless the chapter was dragged
+			_tree_dragged = false;
+		}
+		if (_project.is_folder)
+		{
+			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceNoHoldToOpenOthers))
+			{
+				_tree_dragged = true;
+				ImGui::SetDragDropPayload("BINOTE_CHAPTER", &i, sizeof(int));
+				ImGui::TextUnformatted(d.rel.c_str());
+				ImGui::EndDragDropSource();
+			}
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("BINOTE_CHAPTER"))
+				{
+					_reorder_from = *(const int*)payload->Data;
+					_reorder_to = i;
+				}
+				ImGui::EndDragDropTarget();
+			}
+		}
+		if (_project.is_folder && ImGui::BeginPopupContextItem())
+		{
+			if (ImGui::MenuItem(TR("TREE_EXCLUDE"), nullptr, false, _project.docs.size() > 1))
+				_exclude_request = i;
+			ImGui::EndPopup();
+		}
 		if (open)
 		{
 			for (size_t h = 0; h < d.headings.size(); h++)
@@ -942,6 +981,39 @@ void App::draw_tree(float width, float height)
 		}
 	}
 	ImGui::EndChild();
+	// The change is made after the tree is drawn: it changes the list of chapters
+	if (_tree_press >= 0 && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+	{
+		const int index = _tree_press;
+		const bool dragged = _tree_dragged;
+		_tree_press = -1;
+		_tree_dragged = false;
+		if (!dragged)
+			request_open_doc(index);
+	}
+	if (_reorder_from >= 0)
+	{
+		const int from = _reorder_from, to = _reorder_to;
+		_reorder_from = _reorder_to = -1;
+		reorder_doc(from, to);
+	}
+	if (_refresh_request)
+	{
+		_refresh_request = false;
+		refresh_project();
+	}
+	if (_exclude_request >= 0)
+	{
+		const int index = _exclude_request;
+		_exclude_request = -1;
+		exclude_doc(index);
+	}
+	if (!_include_request.empty())
+	{
+		const std::string name = _include_request;
+		_include_request.clear();
+		include_doc(name);
+	}
 }
 
 // Images of the preview: loaded on demand, relative to the folder of the pane's file (then of the other one), kept as textures

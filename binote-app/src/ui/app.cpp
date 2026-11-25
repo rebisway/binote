@@ -254,13 +254,7 @@ void App::set_project(Project&& p)
 	load_notes();
 	load_pins();
 	_cur = -1;
-	for (Doc& d : _project.docs)
-	{
-		std::string text;
-		if (!(util::exists(d.dst_path) && util::read_text(d.dst_path, text)))
-			util::read_text(d.src_path, text);
-		d.headings = parse_headings(util::split_lines(text), d.is_markdown());
-	}
+	read_headings();
 	// Reopen at the chapter and the line where the project was left
 	const std::string key = _project.is_folder ? _project.source_root : _project.docs[0].src_path;
 	std::string last_doc;
@@ -288,6 +282,111 @@ void App::set_project(Project&& p)
 			found = true;
 		}
 	open_doc(index, found ? last_line : 0);
+}
+
+// Headings of every chapter (the work if it exists, else the original)
+void App::read_headings()
+{
+	for (Doc& d : _project.docs)
+	{
+		std::string text;
+		if (!(util::exists(d.dst_path) && util::read_text(d.dst_path, text)))
+			util::read_text(d.src_path, text);
+		d.headings = parse_headings(util::split_lines(text), d.is_markdown());
+	}
+}
+
+// Moves a chapter to the place of another one (drag and drop in the tree); the chapter on screen stays the same
+void App::reorder_doc(int from, int to)
+{
+	if (!_has_project || !_project.is_folder || from == to)
+		return;
+	const std::string current = _cur >= 0 && _cur < (int)_project.docs.size() ? _project.docs[_cur].rel : std::string();
+	_project.move_to(from, to);
+	for (int i = 0; i < (int)_project.docs.size(); i++)
+		if (_project.docs[i].rel == current)
+			_cur = i;
+}
+
+// Reads the folder again: files added, removed or renamed outside Binote. The chapter on screen is kept, with its unsaved changes.
+void App::refresh_project()
+{
+	if (!_has_project || !_project.is_folder)
+		return;
+	const std::string current = _cur >= 0 && _cur < (int)_project.docs.size() ? _project.docs[_cur].rel : std::string();
+	const bool dirty = _cur >= 0 && _cur < (int)_project.docs.size() && _project.docs[_cur].dirty;
+	const bool crlf = _cur >= 0 && _cur < (int)_project.docs.size() && _project.docs[_cur].crlf;
+	_project.refresh();
+	read_headings();
+	_project_words = -1;
+	_chapter_words.clear();
+	int index = -1;
+	for (int i = 0; i < (int)_project.docs.size(); i++)
+		if (_project.docs[i].rel == current)
+			index = i;
+	if (index >= 0)
+	{
+		_cur = index;
+		_project.docs[index].dirty = dirty;
+		_project.docs[index].crlf = crlf;
+	}
+	else if (!_project.docs.empty())
+	{
+		_cur = -1;								// the chapter on screen is gone: open the first one
+		open_doc(0);
+	}
+	status(TR("MSG_TREE_REFRESHED"));
+}
+
+// Takes a chapter out of the project: the files stay in the folder, but the chapter is not listed, exported, searched or counted any more
+void App::exclude_doc(int index)
+{
+	if (!_has_project || !_project.is_folder || index < 0 || index >= (int)_project.docs.size())
+		return;
+	if (_project.docs.size() < 2)
+	{
+		status(TR("MSG_EXCLUDE_LAST"));
+		return;
+	}
+	auto apply = [this, index]()
+	{
+		const std::string rel = _project.docs[index].rel;
+		const bool was_current = index == _cur;
+		if (!_project.exclude(index))
+			return;
+		_project_words = -1;
+		_chapter_words.clear();
+		if (was_current)
+			open_doc(std::min(index, (int)_project.docs.size() - 1));
+		else if (index < _cur)
+			_cur--;
+		status(i18n::fmt(TR("MSG_EXCLUDED"), rel.c_str()));
+	};
+	if (index == _cur)
+		guard(apply);					// the chapter on screen: ask about unsaved changes first
+	else
+		apply();
+}
+
+// Puts an excluded file back in the project, at the end
+void App::include_doc(const std::string& rel)
+{
+	if (!_has_project || !_project.is_folder)
+		return;
+	guard([this, rel]()
+	{
+		const std::string current = _cur >= 0 && _cur < (int)_project.docs.size() ? _project.docs[_cur].rel : std::string();
+		_project.include_again(rel);
+		read_headings();
+		_project_words = -1;
+		_chapter_words.clear();
+		int index = 0;
+		for (int i = 0; i < (int)_project.docs.size(); i++)
+			if (_project.docs[i].rel == current)
+				index = i;
+		open_doc(index);
+		status(i18n::fmt(TR("MSG_INCLUDED"), rel.c_str()));
+	});
 }
 
 // Goes to a chapter (or to a line of the current one), after the guard for unsaved changes
@@ -1001,6 +1100,11 @@ bool App::command(const std::vector<std::string>& a)
 	if (c == "openfolder" && a.size() > 1) return open_folder_path(a[1], a.size() > 2 ? a[2] : "");
 	if (c == "save") return save();
 	if (c == "lang" && a.size() > 1) { i18n::load(a[1]); return true; }
+	if (c == "excluded") { _show_excluded = true; return true; }
+	if (c == "refresh") { refresh_project(); return true; }
+	if (c == "reorder" && a.size() > 2) { reorder_doc(std::atoi(a[1].c_str()), std::atoi(a[2].c_str())); return true; }
+	if (c == "exclude" && a.size() > 1) { exclude_doc(std::atoi(a[1].c_str())); return true; }
+	if (c == "include" && a.size() > 1) { include_doc(a[1]); return true; }
 	if (c == "doc" && a.size() > 1) { request_open_doc(std::atoi(a[1].c_str())); return true; }
 	if (c == "untypo") { fix_typography(a.size() > 1 && a[1] == "all", true); return true; }
 	if (c == "typo") { fix_typography(a.size() > 1 && a[1] == "all"); return true; }

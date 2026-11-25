@@ -78,6 +78,8 @@ namespace util
 		bool align_paragraphs = true;				// empty (not editable) space in the shorter pane so facing paragraphs start at the same height
 		bool sync_scroll = true;
 		bool show_tree = true;
+		bool format_bar = true;						// the row of the Markdown buttons under the toolbar
+		bool vcs_include_data = false;				// the commits of the Versions window take the data of Binote (.src) too
 		bool show_log = false;
 		bool spell_check = true;
 		bool grammar_check = true;

@@ -21,7 +21,7 @@
 #ifndef _VERSION_H
 #define _VERSION_H
 
-#define BINOTE_VERSION "1.1.1"
+#define BINOTE_VERSION "1.2.0"
 #define BINOTE_AUTHOR "Thomas Gourgnier"
 #define BINOTE_URL "www.rebisway.com"
 

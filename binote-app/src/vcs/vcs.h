@@ -48,9 +48,11 @@ namespace vcs
 	// Run a program in a folder, its output (stdout and stderr) in output. False if it fails or cannot start.
 	bool run(const std::string& folder, const std::vector<std::string>& args, std::string& output);
 
-	std::vector<Change> status(const Info& info, const std::string& folder, std::string& output);
+	// The files of the project are the work, edited in place. The hidden folder .src (originals, project file, notes, history) is Binote's own data: it is
+	// left out of the changes and of the commits unless with_data is set.
+	std::vector<Change> status(const Info& info, const std::string& folder, std::string& output, bool with_data = false);
 	// Add what is new in the folder then commit it
-	bool commit(const Info& info, const std::string& folder, const std::string& message, std::string& output);
+	bool commit(const Info& info, const std::string& folder, const std::string& message, std::string& output, bool with_data = false);
 	bool update(const Info& info, const std::string& folder, std::string& output);			// pull / svn update
 	bool push(const Info& info, const std::string& folder, std::string& output);			// Git only
 	bool log(const Info& info, const std::string& folder, const std::string& file, std::string& output);

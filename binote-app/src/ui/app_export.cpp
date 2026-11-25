@@ -64,13 +64,13 @@ void App::draw_export()
 	const std::string title = std::string(TR("EXPORT_TITLE")) + "###export";
 	if (!ImGui::BeginPopupModal(title.c_str(), nullptr, ImGuiWindowFlags_NoSavedSettings))
 		return;
-	static const char* const formats[] = { "EXPORT_PDF", "EXPORT_DOCX", "EXPORT_EPUB", "EXPORT_HTML", "EXPORT_MARKDOWN" };
-	static const exporter::Format values[] = { exporter::Pdf, exporter::Docx, exporter::Epub, exporter::Html, exporter::Markdown };
+	static const char* const formats[] = { "EXPORT_PDF", "EXPORT_DOCX", "EXPORT_EPUB", "EXPORT_HTML", "EXPORT_MARKDOWN", "EXPORT_TEXT" };
+	static const exporter::Format values[] = { exporter::Pdf, exporter::Docx, exporter::Epub, exporter::Html, exporter::Markdown, exporter::Text };
 	ImGui::TextUnformatted(TR("EXPORT_FORMAT"));
 	ImGui::SetNextItemWidth(-1);
 	if (ImGui::BeginCombo("##format", TR(formats[_s.export_format])))
 	{
-		for (int i = 0; i < 5; i++)
+		for (int i = 0; i < 6; i++)
 			if (ImGui::Selectable(TR(formats[i]), i == _s.export_format))
 			{
 				_s.export_format = i;
@@ -79,6 +79,19 @@ void App::draw_export()
 			}
 		ImGui::EndCombo();
 	}
+	// In a folder: the whole folder, or only the file being worked on
+	if (_project.is_folder && _project.docs.size() > 1 && _cur >= 0 && _cur < (int)_project.docs.size())
+	{
+		ImGui::TextUnformatted(TR("EXPORT_SCOPE"));
+		const std::string all = i18n::fmt(TR("EXPORT_SCOPE_FOLDER"), std::to_string(_project.docs.size()).c_str());
+		const std::string one = i18n::fmt(TR("EXPORT_SCOPE_FILE"), _project.docs[_cur].rel.c_str());
+		if (ImGui::RadioButton(all.c_str(), &_export_scope, 0))
+			_export_path.clear();
+		if (ImGui::RadioButton(one.c_str(), &_export_scope, 1))
+			_export_path.clear();
+	}
+	else
+		_export_scope = 0;
 	ImGui::TextUnformatted(TR("EXPORT_BOOK_TITLE"));
 	ImGui::SetNextItemWidth(-1);
 	ImGui::InputText("##book_title", _export_title, sizeof(_export_title));
@@ -95,7 +108,8 @@ void App::draw_export()
 	const exporter::Format format = values[_s.export_format];
 	if (_export_path.empty())
 	{
-		const std::string base = _project.is_folder ? fs::u8path(_project.source_root).filename().u8string() : fs::u8path(_project.docs.empty() ? "export" : _project.docs[0].rel).stem().u8string();
+		const bool one_file = _project.is_folder && _export_scope == 1 && _cur >= 0 && _cur < (int)_project.docs.size();
+		const std::string base = one_file ? fs::u8path(_project.docs[_cur].rel).stem().u8string() : _project.is_folder ? fs::u8path(_project.source_root).filename().u8string() : fs::u8path(_project.docs.empty() ? "export" : _project.docs[0].rel).stem().u8string();
 		_export_path = util::combine(_project.is_folder ? _project.dest_root : util::parent_path(_project.source_root + "/x"), (base.empty() ? "export" : base) + exporter::extension(format));
 	}
 	ImGui::TextUnformatted(TR("EXPORT_FILE"));
@@ -124,6 +138,8 @@ void App::draw_export()
 		std::vector<exporter::Chapter> chapters;
 		for (int i = 0; i < (int)_project.docs.size(); i++)
 		{
+			if (_project.is_folder && _export_scope == 1 && i != _cur)
+				continue;									// only the file being worked on
 			const Doc& d = _project.docs[i];
 			std::string text;
 			if (!_export_source && i == _cur)
@@ -149,6 +165,7 @@ void App::draw_export()
 		if (exporter::write(_export_path, chapters, o, error))
 		{
 			Logger::log("Export: " + _export_path);
+			note_written_file(_export_path);						// an export in the folder of the project is not a chapter
 			status(i18n::fmt(TR("MSG_EXPORTED"), _export_path.c_str()));
 			_s.save();
 			ImGui::CloseCurrentPopup();

@@ -75,6 +75,7 @@ namespace exporter
 		case Html: return ".html";
 		case Docx: return ".docx";
 		case Epub: return ".epub";
+		case Text: return ".txt";
 		default: return ".pdf";
 		}
 	}
@@ -272,11 +273,6 @@ namespace exporter
 	// ZIP (stored, no compression): .docx and .epub
 	//-------------------------------------------------------------------------
 
-	struct ZipEntry
-	{
-		std::string name, data;
-	};
-
 	// CRC-32 of the ZIP format
 	static unsigned int crc32_of(const std::string& s)
 	{
@@ -358,6 +354,87 @@ namespace exporter
 			return false;
 		}
 		f.write(out.data(), (std::streamsize)out.size());
+		return true;
+	}
+
+	bool zip_write(const std::string& path, const std::vector<ZipEntry>& entries, std::string& error)
+	{
+		return write_zip(path, entries, error);
+	}
+
+	static unsigned int get16(const std::string& s, size_t p) { return (unsigned char)s[p] | ((unsigned int)(unsigned char)s[p + 1] << 8); }
+	static unsigned int get32(const std::string& s, size_t p) { return get16(s, p) | (get16(s, p + 2) << 16); }
+
+	bool zip_read(const std::string& path, std::vector<ZipEntry>& entries, std::string& error)
+	{
+		entries.clear();
+		std::ifstream f(fs::u8path(path), std::ios::binary);
+		if (!f)
+		{
+			error = "Cannot read " + path;
+			return false;
+		}
+		const std::string z((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+		// End of central directory record: the last 22 bytes (no comment in the archives we write)
+		size_t eocd = std::string::npos;
+		for (size_t i = z.size() >= 22 ? z.size() - 22 : 0; i + 4 <= z.size(); i--)
+		{
+			if (get32(z, i) == 0x06054b50)
+			{
+				eocd = i;
+				break;
+			}
+			if (i == 0)
+				break;
+		}
+		if (eocd == std::string::npos || eocd + 22 > z.size())
+		{
+			error = "Not a ZIP archive";
+			return false;
+		}
+		const unsigned int count = get16(z, eocd + 10);
+		size_t p = get32(z, eocd + 16);
+		for (unsigned int n = 0; n < count; n++)
+		{
+			if (p + 46 > z.size() || get32(z, p) != 0x02014b50)
+			{
+				error = "Damaged archive";
+				return false;
+			}
+			const unsigned int method = get16(z, p + 10), crc = get32(z, p + 16), csize = get32(z, p + 20), usize = get32(z, p + 24);
+			const unsigned int nlen = get16(z, p + 28), xlen = get16(z, p + 30), clen = get16(z, p + 32), offset = get32(z, p + 42);
+			if (p + 46 + nlen > z.size())
+			{
+				error = "Damaged archive";
+				return false;
+			}
+			ZipEntry e;
+			e.name = z.substr(p + 46, nlen);
+			p += 46 + nlen + xlen + clen;
+			if (method != 0 || csize != usize)
+			{
+				error = "Compressed archives are not supported: " + e.name;
+				return false;
+			}
+			if ((size_t)offset + 30 > z.size())
+			{
+				error = "Damaged archive";
+				return false;
+			}
+			const size_t data = (size_t)offset + 30 + get16(z, offset + 26) + get16(z, offset + 28);
+			if (data + usize > z.size())
+			{
+				error = "Damaged archive";
+				return false;
+			}
+			e.data = z.substr(data, usize);
+			if (crc32_of(e.data) != crc)
+			{
+				error = "Checksum error: " + e.name;
+				return false;
+			}
+			entries.push_back(e);
+		}
 		return true;
 	}
 
@@ -479,6 +556,59 @@ namespace exporter
 		std::ofstream f(fs::u8path(path), std::ios::binary | std::ios::trunc);
 		if (!f) { error = "Cannot write " + path; return false; }
 		f << m;
+		return true;
+	}
+
+	//-------------------------------------------------------------------------
+	// Plain text: the chapters one after the other, without any Markdown code
+	//-------------------------------------------------------------------------
+
+	static std::string runs_plain(const std::vector<Run>& runs)
+	{
+		std::string t;
+		for (const Run& r : runs)
+			t += r.text;
+		return t;
+	}
+
+	static bool write_plain(const std::string& path, const std::vector<Chapter>& chapters, const Options& o, std::string& error)
+	{
+		std::string out;
+		if (o.title_page && !o.title.empty())
+			out += o.title + "\n" + (o.author.empty() ? std::string() : o.author + "\n") + "\n\n";
+		for (size_t i = 0; i < chapters.size(); i++)
+		{
+			std::string chapter;
+			const std::vector<Block> blocks = parse(chapters[i].text, o.markdown);
+			for (size_t b = 0; b < blocks.size(); b++)
+			{
+				const Block& bl = blocks[b];
+				const std::string text = runs_plain(bl.runs);
+				switch (bl.type)
+				{
+				case Block::Bullet: chapter += "- " + text + "\n"; break;
+				case Block::Numbered: chapter += std::to_string(bl.number) + ". " + text + "\n"; break;
+				case Block::Rule: chapter += "* * *\n\n"; break;
+				default: chapter += text + "\n\n"; break;
+				}
+				// A list is followed by an empty line
+				const bool list = bl.type == Block::Bullet || bl.type == Block::Numbered;
+				const bool same_list = b + 1 < blocks.size() && blocks[b + 1].type == bl.type;
+				if (list && !same_list)
+					chapter += "\n";
+			}
+			while (!chapter.empty() && chapter.back() == '\n')
+				chapter.pop_back();
+			if (i > 0)
+				out += "\n\n\n";
+			out += chapter;
+		}
+		while (!out.empty() && out.back() == '\n')
+			out.pop_back();
+		out += "\n";
+		std::ofstream f(fs::u8path(path), std::ios::binary | std::ios::trunc);
+		if (!f) { error = "Cannot write " + path; return false; }
+		f << out;
 		return true;
 	}
 
@@ -951,6 +1081,7 @@ namespace exporter
 		switch (options.format)
 		{
 		case Markdown: return write_markdown(path, chapters, options, error);
+		case Text: return write_plain(path, chapters, options, error);
 		case Html: return write_html(path, chapters, options, error);
 		case Docx: return write_docx(path, chapters, options, error);
 		case Epub: return write_epub(path, chapters, options, error);

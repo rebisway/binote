@@ -106,7 +106,8 @@ namespace toc
 }
 
 //-----------------------------------------------------------------------------
-// History of the versions of a file: <data>/history/<hash of the path>/<date>_<kind>.txt
+// History of the versions of a file: <root>/<hash of the path>/<date>_<kind>.txt. The root is the folder .src/history of the project (set_root);
+// without a root, <data>/history (the old place).
 //-----------------------------------------------------------------------------
 class History
 {
@@ -118,7 +119,12 @@ public:
 		long long size = 0;
 	};
 
-	static bool add(const std::string& key, const std::string& text, const char* kind);		// false if identical to the latest
+	// The history of the project is kept in its own folder (in .src), the documents are named by their path relative to base
+	static void set_root(const std::string& root, const std::string& base);
+	// Takes the history that the old place (<data>/history) holds for a key (the path of the file as it was then) into the one of newkey. False if there is none.
+	static bool import_legacy(const std::string& oldkey, const std::string& newkey);
+	static std::string folder_of(const std::string& key);									// the folder of the versions of a document
+	static bool add(const std::string& key, const std::string& text, const char* kind);		// false if identical to the latest		// false if identical to the latest
 	static std::vector<Snapshot> list(const std::string& key);								// newest first
 	static std::string read(const Snapshot& s);
 	static void remove(const Snapshot& s);

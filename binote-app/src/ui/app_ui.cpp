@@ -79,6 +79,18 @@ int App::highlight_para(const Pane* pane) const
 void App::frame()
 {
 	const double now = ImGui::GetTime();
+	// A modified chapter is compared with the disk a moment after each change of its text, undo and redo included
+	if (Doc* d = current_doc(); d && d->dirty)
+	{
+		const int version = ImGuiProse::GetVersion(_dst.editor);
+		if (version != _dirty_version)
+		{
+			_dirty_version = version;
+			_dirty_recheck = now + 0.4;
+		}
+	}
+	if (_dirty_recheck >= 0.0 && now >= _dirty_recheck)
+		recheck_dirty();
 	if (!_s.python_seen && ImGui::GetFrameCount() > 2)
 	{
 		// First start: say that Python is needed for the scripts, if it is missing
@@ -211,7 +223,11 @@ void App::handle_shortcuts()
 		_show_problems = !_show_problems;
 	if (ctrl && !alt)
 	{
-		if (pressed(ImGuiKey_O)) { std::string p; if (shift) { if (dialog::pick_folder_dialog("", p)) open_folder_path(p); } else if (dialog::open_file_dialog("", p, "Texte / Markdown", "*.md;*.markdown;*.txt")) open_file_path(p); }
+		if (!shift && pressed(ImGuiKey_B)) md_wrap("**", "**");
+		else if (!shift && pressed(ImGuiKey_I)) md_wrap("*", "*");
+		else if (!shift && pressed(ImGuiKey_K)) md_link();
+		else if (!shift && pressed(ImGuiKey_N)) new_file();
+		else if (pressed(ImGuiKey_O)) { std::string p; if (shift) { if (dialog::pick_folder_dialog("", p)) open_folder_path(p); } else if (dialog::open_file_dialog("", p, "Texte / Markdown", "*.md;*.markdown;*.txt")) open_file_path(p); }
 		else if (pressed(ImGuiKey_S)) save();
 		else if (pressed(ImGuiKey_G)) { _open_goto = true; _goto_value = 1; }
 		else if (pressed(ImGuiKey_F)) { _show_find = true; _find_focus = true; _find_all_chapters = shift; }
@@ -253,6 +269,8 @@ void App::draw_menu()
 	std::string path;
 	if (ImGui::BeginMenu(TR("MENU_FILE")))
 	{
+		if (ImGui::MenuItem(TR("MENU_NEW"), "Ctrl+N"))
+			new_file();
 		if (ImGui::MenuItem(TR("MENU_OPEN_FILE"), "Ctrl+O") && dialog::open_file_dialog("", path, "Texte / Markdown", "*.md;*.markdown;*.txt"))
 			open_file_path(path);
 		if (ImGui::MenuItem(TR("MENU_OPEN_FOLDER"), "Ctrl+Shift+O") && dialog::pick_folder_dialog("", path))
@@ -289,18 +307,27 @@ void App::draw_menu()
 			_open_export = true;
 		if (ImGui::MenuItem(TR("MENU_SAVE_AS"), nullptr, false, _has_project && !_project.is_folder) && dialog::save_file_dialog("", path, "Texte / Markdown", "*.md;*.markdown;*.txt"))
 			save_as(path);
-		if (ImGui::MenuItem(TR("MENU_MERGE_FILES"), nullptr, false, _has_project && _project.is_folder && _project.docs.size() > 1) && dialog::save_file_dialog("", path, "Texte / Markdown", "*.md;*.markdown;*.txt"))
+		if (ImGui::MenuItem(TR("MENU_MERGE_FILES"), nullptr, false, _has_project && _project.is_folder && _project.docs.size() > 1) && dialog::save_file_dialog(util::combine(_project.source_root, _project.name + ".md"), path, "Texte / Markdown", "*.md;*.markdown;*.txt"))
 			merge_files(path);
 		if (ImGui::MenuItem(TR("MENU_RESET_FROM_SOURCE"), nullptr, false, _has_project))
 			reset_dest_from_source();
 		ImGui::Separator();
 		if (ImGui::MenuItem(TR("MENU_PREFERENCES")))
 			_open_prefs = true;
-		if (ImGui::MenuItem(TR("MENU_DEST_FOLDER"), nullptr, false, _has_project))
+		if (ImGui::BeginMenu(TR("MENU_PROJECT_DATA"), _has_project))
 		{
-			_dest_folder.clear();
-			_dest_input = _project.dest_root;
-			_open_dest = true;
+			if (ImGui::MenuItem(TR("MENU_DATA_EXPORT")))
+				export_project_data();
+			if (ImGui::MenuItem(TR("MENU_DATA_IMPORT")))
+			{
+				std::string archive;
+				if (dialog::open_file_dialog(_project.source_root, archive, "ZIP", "*.zip"))
+					import_project_data(archive);
+			}
+			ImGui::Separator();
+			if (ImGui::MenuItem(TR("MENU_DATA_DELETE")))
+				delete_project_data();
+			ImGui::EndMenu();
 		}
 		ImGui::Separator();
 		if (ImGui::MenuItem(TR("MENU_QUIT")))
@@ -328,6 +355,27 @@ void App::draw_menu()
 		if (ImGui::MenuItem(TR("MENU_PIN_CLEAR"), nullptr, false, _has_project)) clear_pins();
 		if (ImGui::MenuItem(TR("MENU_NOTE_HERE"), "Ctrl+Alt+N", false, _has_project)) add_note_here();
 		if (ImGui::MenuItem(TR("MENU_NOTES"), nullptr, _show_notes, _has_project)) _show_notes = !_show_notes;
+		if (ImGui::BeginMenu(TR("MENU_FORMAT"), format_editor() != nullptr))
+		{
+			if (ImGui::MenuItem(TR("FMT_BOLD"), "Ctrl+B")) md_wrap("**", "**");
+			if (ImGui::MenuItem(TR("FMT_ITALIC"), "Ctrl+I")) md_wrap("*", "*");
+			if (ImGui::MenuItem(TR("FMT_STRIKE"))) md_wrap("~~", "~~");
+			if (ImGui::MenuItem(TR("FMT_CODE"))) md_wrap("`", "`");
+			ImGui::Separator();
+			for (int level = 1; level <= 4; level++)
+				if (ImGui::MenuItem(TR(level == 1 ? "FMT_H1" : level == 2 ? "FMT_H2" : level == 3 ? "FMT_H3" : "FMT_H4"))) md_lines(1, level);
+			if (ImGui::MenuItem(TR("FMT_H0"))) md_lines(1, 0);
+			ImGui::Separator();
+			if (ImGui::MenuItem(TR("FMT_BULLET"))) md_lines(2, 0);
+			if (ImGui::MenuItem(TR("FMT_NUMBERED"))) md_lines(3, 0);
+			if (ImGui::MenuItem(TR("FMT_TASK"))) md_lines(5, 0);
+			if (ImGui::MenuItem(TR("FMT_QUOTE"))) md_lines(4, 0);
+			ImGui::Separator();
+			if (ImGui::MenuItem(TR("FMT_LINK"), "Ctrl+K")) md_link();
+			if (ImGui::MenuItem(TR("FMT_CODEBLOCK"))) md_code_block();
+			if (ImGui::MenuItem(TR("FMT_RULE"))) md_rule();
+			ImGui::EndMenu();
+		}
 		if (ImGui::MenuItem(TR("MENU_INSERT_NBSP"), "Ctrl+Shift+Space")) insert_text(typography::NBSP);
 		if (ImGui::MenuItem(TR("MENU_INSERT_NNBSP"), "Ctrl+Alt+Space")) insert_text(typography::NNBSP);
 		if (ImGui::MenuItem(TR("MENU_INSERT_QUOTES")))
@@ -346,6 +394,7 @@ void App::draw_menu()
 	}
 	if (ImGui::BeginMenu(TR("MENU_VIEW")))
 	{
+		if (ImGui::MenuItem(TR("MENU_FORMAT_BAR"), nullptr, _s.format_bar)) toggle(_s.format_bar);
 		if (ImGui::MenuItem(TR("MENU_WORD_WRAP"), "Alt+Z", _s.wrap)) toggle(_s.wrap);
 		if (ImGui::MenuItem(TR("MENU_LINE_NUMBERS"), nullptr, _s.line_numbers)) toggle(_s.line_numbers);
 		if (ImGui::MenuItem(TR("MENU_PARAGRAPH_NUMBERS"), nullptr, _s.paragraph_numbers)) toggle(_s.paragraph_numbers);
@@ -395,12 +444,6 @@ void App::draw_menu()
 		}
 		if (ImGui::MenuItem(TR("MENU_ZOOM_IN"), "Ctrl++")) { _s.font_size = std::min(40.0f, _s.font_size + 1.0f); _s.save(); }
 		if (ImGui::MenuItem(TR("MENU_ZOOM_OUT"), "Ctrl+-")) { _s.font_size = std::max(10.0f, _s.font_size - 1.0f); _s.save(); }
-		ImGui::EndMenu();
-	}
-	if (ImGui::BeginMenu(TR("MENU_MODE")))
-	{
-		if (ImGui::MenuItem(TR("MENU_MODE_TEXT"), nullptr, !_s.markdown)) { _s.markdown = false; refresh_headings(); }
-		if (ImGui::MenuItem(TR("MENU_MODE_MARKDOWN"), nullptr, _s.markdown)) { _s.markdown = true; refresh_headings(); }
 		ImGui::EndMenu();
 	}
 	draw_script_menu();
@@ -592,6 +635,9 @@ void App::draw_toolbar()
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5.0f, 2.0f));
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 4.0f));
 	std::string path;
+	if (icon_button("+", TR("BTN_NEW")))
+		new_file();
+	ImGui::SameLine();
 	if (icon_button("\xE2\x8F\x8F", TR("BTN_OPEN")) && dialog::open_file_dialog("", path, "Texte / Markdown", "*.md;*.markdown;*.txt"))		// eject
 		open_file_path(path);
 	ImGui::SameLine();
@@ -645,6 +691,23 @@ void App::draw_toolbar()
 	ImGui::TextDisabled("|");
 	ImGui::SameLine();
 
+	// The Markdown buttons (bold, italic, headings, lists...) for the texts which are Markdown: here when there is room left for a list of the
+	// headings of a reasonable width, else on a row of their own under the toolbar
+	_format_row = false;
+	if (_has_project && _s.format_bar && _s.markdown)
+	{
+		const float tail_width = ImGui::GetFrameHeight() * 1.2f * 3.0f + 24.0f;
+		if (ImGui::GetContentRegionAvail().x >= format_buttons_width() + 190.0f + tail_width)
+		{
+			draw_format_buttons();
+			ImGui::SameLine();
+			ImGui::TextDisabled("|");
+			ImGui::SameLine();
+		}
+		else
+			_format_row = true;
+	}
+
 	// Heading of the caret
 	Pane* p = outline_pane();
 	const int line = ImGuiProse::GetCaret(p->editor).Line;
@@ -653,7 +716,7 @@ void App::draw_toolbar()
 		if (_headings[i].line <= line)
 			current = (int)i;
 	const float tail = ImGui::GetFrameHeight() * 1.2f * 3.0f + 24.0f;
-	ImGui::SetNextItemWidth(std::max(180.0f, ImGui::GetContentRegionAvail().x - tail));
+	ImGui::SetNextItemWidth(std::max(150.0f, ImGui::GetContentRegionAvail().x - tail));
 	if (ImGui::BeginCombo("##heading", current >= 0 ? _headings[current].title.c_str() : "-"))
 	{
 		for (size_t i = 0; i < _headings.size(); i++)
@@ -687,6 +750,14 @@ void App::draw_toolbar()
 	}
 	ImGui::PopStyleVar(2);
 	ImGui::Separator();
+	if (_format_row)
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(5.0f, 1.0f));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(3.0f, 3.0f));
+		draw_format_buttons();
+		ImGui::PopStyleVar(2);
+		ImGui::Separator();
+	}
 }
 //-----------------------------------------------------------------------------
 // Body: tree, source and destination panes
@@ -957,6 +1028,17 @@ void App::draw_tree(float width, float height)
 			flags |= ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_DefaultOpen;
 		const std::string label = std::string(d.dirty ? "\xE2\x97\x8F " : "") + d.rel;
 		const bool open = ImGui::TreeNodeEx((void*)(intptr_t)(i + 1), flags, "%s", label.c_str());
+		// A small tag at the right: orange = changed and not saved, green = saved, different from the original
+		if (d.dirty || d.modified)
+		{
+			const ImVec2 mn = ImGui::GetItemRectMin(), mx = ImGui::GetItemRectMax();
+			const float r = ImGui::GetTextLineHeight() * 0.22f;
+			const ImVec2 c(ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x - r - 6.0f, (mn.y + mx.y) * 0.5f);
+			ImGui::GetWindowDrawList()->AddCircleFilled(c, r, d.dirty ? IM_COL32(235, 140, 40, 255) : IM_COL32(70, 170, 90, 255));
+			const ImVec2 mouse = ImGui::GetMousePos();
+			if (ImGui::IsWindowHovered() && mouse.x >= c.x - r - 4.0f && mouse.x <= c.x + r + 4.0f && mouse.y >= mn.y && mouse.y <= mx.y)
+				ImGui::SetTooltip("%s", TR(d.dirty ? "TREE_TAG_UNSAVED" : "TREE_TAG_SAVED"));
+		}
 		if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 		{
 			_tree_press = i;							// opened when the mouse is released, unless the chapter was dragged
@@ -985,6 +1067,8 @@ void App::draw_tree(float width, float height)
 		{
 			if (ImGui::MenuItem(TR("TREE_EXCLUDE"), nullptr, false, _project.docs.size() > 1))
 				_exclude_request = i;
+			if (ImGui::MenuItem(TR("TREE_SET_ORIGINAL"), nullptr, false, d.modified || d.dirty))
+				_original_request = i;
 			ImGui::EndPopup();
 		}
 		if (open)
@@ -1020,6 +1104,12 @@ void App::draw_tree(float width, float height)
 	{
 		_refresh_request = false;
 		refresh_project();
+	}
+	if (_original_request >= 0)
+	{
+		const int index = _original_request;
+		_original_request = -1;
+		set_original(index);
 	}
 	if (_exclude_request >= 0)
 	{
@@ -1216,7 +1306,10 @@ void App::draw_pane(Pane& pane, const char* id, float width, float height)
 		}
 		if (changed && !pane.is_source)
 			if (Doc* doc = current_doc())
+			{
 				doc->dirty = true;
+				_dirty_recheck = ImGui::GetTime() + 0.4;			// a moment after the last change: is the text the one of the disk again?
+			}
 		if (changed && pane.is_source && !pane.config.ReadOnly)
 			_src_dirty = true;
 	}
@@ -1263,7 +1356,9 @@ void App::draw_status()
 		ch = ch == '_' ? '-' : (char)toupper((unsigned char)ch);
 	const ImVec2 pad(6.0f, 1.0f);
 	auto width = [&](const char* text) { return ImGui::CalcTextSize(text).x + pad.x * 2.0f; };
-	const float cluster = (_has_project ? width(language.c_str()) + 4.0f : 0.0f) + width("Ab") + 4.0f + width("Gr") + 10.0f;
+	// The kind of text follows the extension of the file (.md, .markdown: Markdown; else plain text): shown, not chosen
+	const char* kind_label = _s.markdown ? "MD" : "TXT";
+	const float cluster = (_has_project ? width(language.c_str()) + 4.0f + width(kind_label) + 4.0f : 0.0f) + width("Ab") + 4.0f + width("Gr") + 10.0f;
 	const float cluster_x = ImGui::GetWindowWidth() - cluster;
 	ImGui::SameLine(cluster_x);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, pad);
@@ -1283,6 +1378,11 @@ void App::draw_status()
 	};
 	if (_has_project)
 	{
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextDisabled("%s", kind_label);
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("%s", TR(_s.markdown ? "STATUS_KIND_MD" : "STATUS_KIND_TXT"));
+		ImGui::SameLine(0.0f, 8.0f);
 		if (flat(language.c_str(), true, ImGui::GetStyleColorVec4(ImGuiCol_Text), TR("MENU_PROJECT_LANGUAGE")))
 			ImGui::OpenPopup("##textlanguage");
 		if (ImGui::BeginPopup("##textlanguage"))
@@ -1382,6 +1482,32 @@ void App::draw_dialogs()
 	if (_open_dest) { ImGui::OpenPopup(TR("DLG_DEST_TITLE")); _open_dest = false; }
 
 	const ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+	if (_open_yesno) { ImGui::OpenPopup("###yesno"); _open_yesno = false; }
+	ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	const std::string yesno_title = _yesno_title + "###yesno";
+	if (ImGui::BeginPopupModal(yesno_title.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 36.0f);
+		ImGui::TextUnformatted(_yesno_text.c_str());
+		ImGui::PopTextWrapPos();
+		ImGui::Separator();
+		if (ImGui::Button(_yesno_ok.c_str()) || _yesno_accept)
+		{
+			_yesno_accept = false;
+			std::function<void()> action = _yesno_action;
+			_yesno_action = nullptr;
+			ImGui::CloseCurrentPopup();
+			if (action)
+				action();
+		}
+		ImGui::SameLine();
+		if (ImGui::Button(TR("BTN_CANCEL")) || ImGui::IsKeyPressed(ImGuiKey_Escape))
+		{
+			_yesno_action = nullptr;
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::EndPopup();
+	}
 	if (_open_python) { ImGui::OpenPopup(TR("DLG_PYTHON_TITLE")); _open_python = false; }
 	ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 	if (ImGui::BeginPopupModal(TR("DLG_PYTHON_TITLE"), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
@@ -1749,6 +1875,7 @@ void App::draw_toc()
 	if (ImGui::Button(TR("TOC_WRITE_FILE")))
 	{
 		util::write_text(util::combine(_project.dest_root, "SOMMAIRE.md"), _toc_text);
+		note_written_file(util::combine(_project.dest_root, "SOMMAIRE.md"));
 		status(TR("MSG_TOC_WRITTEN"));
 		_show_toc = false;
 	}

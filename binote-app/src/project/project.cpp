@@ -19,6 +19,10 @@
 
 #include "project/project.h"
 #include "common/util.h"
+#include "project/text.h"
+#include "export/exporter.h"
+#include <fstream>
+#include <iterator>
 #include <algorithm>
 #include <filesystem>
 #include <set>
@@ -283,6 +287,9 @@ std::string Project::config_path() const
 // A project file (binote.json, notes, pins) next to the originals, or in their .src / src folder when there is one
 std::string Project::meta_path(const char* name) const
 {
+	// A single file shares its .src folder with the others of its folder: its project files carry its name
+	if (!is_folder && !meta_dir.empty() && !docs.empty())
+		return util::combine(meta_dir, docs[0].rel + "." + name);
 	return util::combine(meta_dir.empty() ? source_root : meta_dir, name);
 }
 
@@ -315,6 +322,18 @@ static std::string to_stored(const std::string& source_root, const std::string& 
 	return full.u8string();
 }
 
+// A folder whose name starts with a dot is hidden for Windows too
+static void hide_if_dotted(const std::string& file_in_folder)
+{
+#ifdef _WIN32
+	const fs::path dir = fs::u8path(file_in_folder).parent_path();
+	if (dir.filename().u8string().compare(0, 1, ".") == 0)
+		SetFileAttributesW(dir.c_str(), GetFileAttributesW(dir.c_str()) | FILE_ATTRIBUTE_HIDDEN);
+#else
+	(void)file_in_folder;
+#endif
+}
+
 // Opens a folder of chapters; reads binote.json for the destination and the order
 bool Project::open_folder(const std::string& folder, const std::string& destination, Project& out)
 {
@@ -327,43 +346,56 @@ bool Project::open_folder(const std::string& folder, const std::string& destinat
 	if (out.name.empty())
 		out.name = fs::u8path(folder).parent_path().filename().u8string();
 	out.meta_dir = meta_folder(folder);
+	bool fresh = false;
+	if (out.meta_dir.empty() && !util::exists(util::combine(folder, "binote.json")) && destination.empty())
+	{
+		// A new project: the files of the folder are the work, a copy of each one in .src is the original
+		out.meta_dir = util::combine(folder, ".src");
+		out.config_source = ".src";
+		out.config_destination = ".";
+		std::error_code ec;
+		fs::create_directories(fs::u8path(out.meta_dir), ec);
+		hide_if_dotted(util::combine(out.meta_dir, "x"));
+		fresh = true;
+	}
 	std::string text;
 	if (util::read_text(out.config_path(), text))
 		read_config(text, out);
 	if (!destination.empty())
 		out.config_destination = to_stored(folder, destination);
 	out.refresh();
+	if (fresh)
+		out.save_config();
 	return true;
 }
 
-// Opens a single file with its destination file
+// Opens a single file: it is the work, edited in place; a copy of it in .src (next to it) is the original
 bool Project::open_file(const std::string& file, const std::string& destination_file, Project& out)
 {
+	(void)destination_file;						// the old destination of the work: see migrate_file
 	if (!util::exists(file))
 		return false;
 	out = Project();
 	out.is_folder = false;
 	out.source_root = util::parent_path(file);
 	out.name = util::file_name(file);
-	out.dest_root = util::combine(out.source_root, "dst");
+	out.meta_dir = util::combine(out.source_root, ".src");
+	out.config_source = ".src";
+	out.config_destination = ".";
+	out.dest_root = out.source_root;
 	Doc d;
 	d.rel = util::file_name(file);
-	d.src_path = file;
-	d.dst_path = destination_file.empty() ? util::combine(out.dest_root, d.rel) : destination_file;
+	d.src_path = util::combine(out.meta_dir, d.rel);
+	d.dst_path = file;
+	if (!util::exists(d.src_path))
+	{
+		std::error_code ec;
+		fs::create_directories(fs::u8path(out.meta_dir), ec);
+		hide_if_dotted(util::combine(out.meta_dir, "x"));
+		fs::copy_file(fs::u8path(file), fs::u8path(d.src_path), ec);
+	}
 	out.docs.push_back(d);
 	return true;
-}
-
-// A folder whose name starts with a dot is hidden for Windows too
-static void hide_if_dotted(const std::string& file_in_folder)
-{
-#ifdef _WIN32
-	const fs::path dir = fs::u8path(file_in_folder).parent_path();
-	if (dir.filename().u8string().compare(0, 1, ".") == 0)
-		SetFileAttributesW(dir.c_str(), GetFileAttributesW(dir.c_str()) | FILE_ATTRIBUTE_HIDDEN);
-#else
-	(void)file_in_folder;
-#endif
 }
 
 // Lists the chapters of a folder (md, markdown, txt) in the order of binote.json, then the new files by name
@@ -519,4 +551,314 @@ void Project::save_config() const
 	}
 	o += "\n}\n";
 	util::write_text(config_path(), o);
+}
+
+//-----------------------------------------------------------------------------
+// Working in place: migration of the old projects, project data
+//-----------------------------------------------------------------------------
+
+namespace
+{
+	std::string read_binary(const std::string& path)
+	{
+		std::ifstream f(fs::u8path(path), std::ios::binary);
+		return std::string((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+	}
+
+	bool write_binary(const std::string& path, const std::string& data)
+	{
+		std::error_code ec;
+		fs::create_directories(fs::u8path(path).parent_path(), ec);
+		std::ofstream f(fs::u8path(path), std::ios::binary | std::ios::trunc);
+		if (!f)
+			return false;
+		f.write(data.data(), (std::streamsize)data.size());
+		return (bool)f;
+	}
+
+	// The same text whatever the line breaks
+	std::string without_cr(std::string s)
+	{
+		s.erase(std::remove(s.begin(), s.end(), '\r'), s.end());
+		return s;
+	}
+
+	bool is_chapter_file(const std::string& name)
+	{
+		const std::string e = util::extension(name);
+		return e == ".md" || e == ".markdown" || e == ".txt";
+	}
+
+	// A path which does not exist yet, next to wanted: wanted, wanted-2, wanted-3...
+	std::string free_name(const std::string& wanted)
+	{
+		std::error_code ec;
+		if (!fs::exists(fs::u8path(wanted), ec))
+			return wanted;
+		for (int i = 2; i < 1000; i++)
+			if (!fs::exists(fs::u8path(wanted + "-" + std::to_string(i)), ec))
+				return wanted + "-" + std::to_string(i);
+		return wanted;
+	}
+}
+
+// A folder whose work is in another folder (the old way of working): its binote.json names a destination, or it has a dst folder with the same chapters
+bool Project::is_legacy_folder(const std::string& folder)
+{
+	if (!meta_folder(folder).empty())
+		return false;
+	std::string text;
+	if (util::read_text(util::combine(folder, "binote.json"), text))
+	{
+		Project p;
+		read_config(text, p);
+		return p.config_source.empty();
+	}
+	std::error_code ec;
+	const fs::path dst = fs::u8path(util::combine(folder, "dst"));
+	if (!fs::is_directory(dst, ec))
+		return false;
+	for (const auto& e : fs::directory_iterator(dst, ec))
+		if (e.is_regular_file() && is_chapter_file(e.path().filename().u8string()) && util::exists(util::combine(folder, e.path().filename().u8string())))
+			return true;
+	return false;
+}
+
+// Moves a project made the old way to the new one. Nothing is deleted: the originals are copied to .src, the work (dst) is copied over the files of the folder,
+// the old dst folder and binote.json are kept in .src.
+bool Project::migrate_folder(const std::string& folder, std::string& report)
+{
+	std::error_code ec;
+	Project old;
+	if (!open_folder(folder, util::combine(folder, "dst"), old))
+	{
+		report = "Cannot open " + folder;
+		return false;
+	}
+	// open_folder with a destination reads binote.json if there is one; the destination named there wins over the default one
+	{
+		std::string text;
+		Project p;
+		if (util::read_text(util::combine(folder, "binote.json"), text))
+		{
+			read_config(text, p);
+			old.config_destination = p.config_destination.empty() ? "dst" : p.config_destination;
+		}
+		else
+			old.config_destination = "dst";
+		old.refresh();
+	}
+	const std::string meta = util::combine(folder, ".src");
+	fs::create_directories(fs::u8path(meta), ec);
+	hide_if_dotted(util::combine(meta, "x"));
+	History::set_root(util::combine(meta, "history"), folder);
+	int copied = 0, updated = 0, history = 0;
+	for (const Doc& d : old.docs)
+	{
+		const std::string work = util::combine(folder, d.rel), ref = util::combine(meta, d.rel);
+		if (!util::exists(ref))
+		{
+			fs::copy_file(fs::u8path(work), fs::u8path(ref), ec);
+			copied++;
+		}
+		if (util::exists(d.dst_path) && fs::u8path(d.dst_path) != fs::u8path(work) && without_cr(read_binary(d.dst_path)) != without_cr(read_binary(work)))
+		{
+			fs::copy_file(fs::u8path(d.dst_path), fs::u8path(work), fs::copy_options::overwrite_existing, ec);
+			updated++;
+		}
+		if (History::import_legacy(d.dst_path, work))
+			history++;
+	}
+	// The project file, then the notes, pins and alignment which were next to the originals
+	Project p = old;
+	p.config_source = ".src";
+	p.config_destination = ".";
+	p.meta_dir = meta;
+	p.refresh();
+	p.save_config();
+	for (const char* name : { "binote.align", "binote.notes" })
+		if (util::exists(util::combine(folder, name)))
+			fs::rename(fs::u8path(util::combine(folder, name)), fs::u8path(util::combine(meta, name)), ec);
+	if (util::exists(util::combine(folder, "binote.json")))
+		fs::rename(fs::u8path(util::combine(folder, "binote.json")), fs::u8path(free_name(util::combine(meta, "binote.json.before-migration"))), ec);
+	// The old destination folder, when it is inside the project, is kept in .src
+	const fs::path dest = fs::u8path(old.dest_root);
+	bool kept = false;
+	if (!old.dest_root.empty() && fs::is_directory(dest, ec) && dest.parent_path() == fs::u8path(folder).lexically_normal().parent_path() / fs::u8path(folder).filename())
+	{
+		fs::rename(dest, fs::u8path(free_name(util::combine(meta, "dst-before-migration"))), ec);
+		kept = !ec;
+	}
+	report = std::to_string((int)old.docs.size()) + " chapter(s), " + std::to_string(updated) + " file(s) replaced by the work, " + std::to_string(history) + " history folder(s)" + (kept ? ", the old dst folder is in .src" : "");
+	return true;
+}
+
+// A single file whose work is in another file (dst/<name> or a destination chosen before)
+bool Project::is_legacy_file(const std::string& file, const std::string& destination_file)
+{
+	const std::string dir = util::parent_path(file), name = util::file_name(file);
+	if (util::exists(util::combine(util::combine(dir, ".src"), name)))
+		return false;
+	const std::string dest = destination_file.empty() ? util::combine(util::combine(dir, "dst"), name) : destination_file;
+	std::error_code ec;
+	return util::exists(dest) && fs::u8path(dest).lexically_normal() != fs::u8path(file).lexically_normal();
+}
+
+bool Project::migrate_file(const std::string& file, const std::string& destination_file, std::string& report)
+{
+	std::error_code ec;
+	const std::string dir = util::parent_path(file), name = util::file_name(file), meta = util::combine(dir, ".src");
+	const std::string dest = destination_file.empty() ? util::combine(util::combine(dir, "dst"), name) : destination_file;
+	fs::create_directories(fs::u8path(meta), ec);
+	hide_if_dotted(util::combine(meta, "x"));
+	const std::string ref = util::combine(meta, name);
+	if (!util::exists(ref))
+		fs::copy_file(fs::u8path(file), fs::u8path(ref), ec);
+	History::set_root(util::combine(meta, "history"), dir);
+	bool replaced = false;
+	if (util::exists(dest) && without_cr(read_binary(dest)) != without_cr(read_binary(file)))
+	{
+		fs::copy_file(fs::u8path(dest), fs::u8path(file), fs::copy_options::overwrite_existing, ec);
+		replaced = true;
+	}
+	History::import_legacy(dest, file);
+	if (util::exists(dest))
+		fs::rename(fs::u8path(dest), fs::u8path(free_name(util::combine(meta, name + ".before-migration"))), ec);
+	// The dst folder of this file, when nothing else is in it, is not needed any more
+	if (fs::u8path(dest).parent_path().filename() == "dst")
+		fs::remove(fs::u8path(dest).parent_path(), ec);
+	report = replaced ? "the file was replaced by its work" : "the work was the same as the file";
+	return true;
+}
+
+// Compares the work with the original (the reference copy) for each chapter
+void Project::update_modified()
+{
+	for (Doc& d : docs)
+		d.modified = util::exists(d.src_path) && util::exists(d.dst_path) && without_cr(read_binary(d.src_path)) != without_cr(read_binary(d.dst_path));
+}
+
+// A file written in the folder by Binote (an export, the table of contents) is not a chapter
+void Project::auto_exclude(const std::string& rel)
+{
+	if (!is_folder || !is_chapter_file(rel))
+		return;
+	if (std::find(config_excluded.begin(), config_excluded.end(), rel) == config_excluded.end())
+		config_excluded.push_back(rel);
+	docs.erase(std::remove_if(docs.begin(), docs.end(), [&](const Doc& d) { return d.rel == rel; }), docs.end());
+	config_order.clear();
+	for (const Doc& d : docs)
+		config_order.push_back(d.rel);
+	if (std::find(excluded.begin(), excluded.end(), rel) == excluded.end())
+		excluded.push_back(rel);
+	std::sort(excluded.begin(), excluded.end(), util::natural_less);
+	save_config();
+}
+
+// Removes the data of the project: .src (the originals, binote.json, notes, pins, history). The work is not touched.
+bool Project::delete_data(std::string& error)
+{
+	std::error_code ec;
+	if (meta_dir.empty())
+	{
+		error = "No project data";
+		return false;
+	}
+	if (is_folder)
+	{
+		const std::string leaf = fs::u8path(meta_dir).filename().u8string();
+		if (leaf != ".src" && leaf != "src")
+		{
+			error = "Unexpected folder: " + meta_dir;
+			return false;
+		}
+		fs::remove_all(fs::u8path(meta_dir), ec);
+		if (ec)
+		{
+			error = ec.message();
+			return false;
+		}
+		return true;
+	}
+	// A single file: its reference, its project files and its history; the other files of the folder keep theirs
+	const std::string name = docs.empty() ? std::string() : docs[0].rel;
+	if (name.empty())
+		return false;
+	for (const auto& e : fs::directory_iterator(fs::u8path(meta_dir), ec))
+	{
+		const std::string n = e.path().filename().u8string();
+		if (e.is_regular_file() && (n == name || n.compare(0, name.size() + 1, name + ".") == 0))
+			fs::remove(e.path(), ec);
+	}
+	fs::remove_all(fs::u8path(History::folder_of(docs[0].dst_path)), ec);
+	fs::remove(fs::u8path(meta_dir), ec);			// only if it is empty now
+	return true;
+}
+
+// The data of the project in one archive (ZIP): everything of .src, or for a single file its own files
+bool Project::export_data(const std::string& archive, std::string& error) const
+{
+	std::error_code ec;
+	if (meta_dir.empty() || !fs::is_directory(fs::u8path(meta_dir), ec))
+	{
+		error = "No project data";
+		return false;
+	}
+	const std::string name = docs.empty() ? std::string() : docs[0].rel;
+	const fs::path root = fs::u8path(meta_dir);
+	std::vector<exporter::ZipEntry> entries;
+	std::string history_prefix;
+	if (!is_folder)
+	{
+		std::string h = History::folder_of(docs[0].dst_path);
+		std::error_code e2;
+		history_prefix = fs::relative(fs::u8path(h), root, e2).generic_u8string() + "/";
+	}
+	for (const auto& e : fs::recursive_directory_iterator(root, ec))
+	{
+		if (!e.is_regular_file())
+			continue;
+		const std::string rel = fs::relative(e.path(), root, ec).generic_u8string();
+		if (!is_folder && !(rel == name || rel.compare(0, name.size() + 1, name + ".") == 0 || rel.compare(0, history_prefix.size(), history_prefix) == 0))
+			continue;
+		exporter::ZipEntry z;
+		z.name = rel;
+		z.data = read_binary(e.path().u8string());
+		entries.push_back(z);
+	}
+	if (entries.empty())
+	{
+		error = "No project data";
+		return false;
+	}
+	return exporter::zip_write(archive, entries, error);
+}
+
+// Puts the data of an archive made by export_data into .src (the files of the same name are replaced)
+bool Project::import_data(const std::string& archive, std::string& error)
+{
+	std::vector<exporter::ZipEntry> entries;
+	if (!exporter::zip_read(archive, entries, error))
+		return false;
+	if (meta_dir.empty())
+	{
+		error = "No project data folder";
+		return false;
+	}
+	for (const exporter::ZipEntry& e : entries)
+		if (e.name.empty() || e.name[0] == '/' || e.name.find("..") != std::string::npos || e.name.find(':') != std::string::npos || e.name.find('\\') != std::string::npos)
+		{
+			error = "Unsafe name in the archive: " + e.name;
+			return false;
+		}
+	int n = 0;
+	for (const exporter::ZipEntry& e : entries)
+		if (write_binary(util::combine(meta_dir, e.name), e.data))
+			n++;
+	if (n == 0)
+	{
+		error = "Nothing was imported";
+		return false;
+	}
+	return true;
 }

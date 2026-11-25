@@ -1,0 +1,9 @@
+{
+  "Name": "ja",
+  "Destination": ".",
+  "Source": ".src",
+  "Language": "ja",
+  "Order": [
+    "01_wagahai.md"
+  ]
+}

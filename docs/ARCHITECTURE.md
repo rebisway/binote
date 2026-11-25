@@ -43,7 +43,7 @@ Entry point: reads the command line (`--script FILE`, `--width W`, `--height H`,
 
 | File | Role |
 |---|---|
-| `project.*` | a project: one file or a folder with one chapter per file; headings (Markdown `#`, text "Chapter...", underlined titles); `binote.json` (name, destination, language, order) |
+| `project.*` | a project: one file or a folder with one chapter per file; headings (Markdown `#`, text "Chapter...", underlined titles); `.src/binote.json` (name, language, order, excluded files); the work in place, the originals in `.src`, migration, export and import of the project data |
 | `text.*` | French typography (« », ’, …, no-break spaces), the line and word diff, the table of contents, the history of saved versions |
 | `search.*` | find and replace: plain text or regular expression, escapes, case, whole words; offsets are bytes of the UTF-8 text |
 
@@ -93,7 +93,7 @@ flowchart TB
     A -->|save| H[(history<br/>%AppData%/Binote/history)]
 ```
 
-- The **source** is read-only (except in reading mode, on request); the **destination** is what you write, in a `dst` folder or the one chosen for the project.
+- The **source** (the Original view) is a reference copy in the hidden folder `.src` of the project, read-only (except in reading mode, on request); the **destination** (the Work view) is the file of the project itself, edited in place so that Git or SVN follow it. `.src` also holds `binote.json`, the notes, the alignments and the history (`<root>/<hash of the relative path>/`, deltas with a full text every 20 versions). A project of the old kind (the work in `dst`) is migrated by `Project::migrate_folder` after a question.
 - At each change the paragraphs are compared with the source (`text.*` diff) and the panes are kept aligned; the alignments you declare are kept in `binote.align`.
 - After each change the **problems** of the destination are rebuilt (`App::rebuild_spans`): Hunspell for spelling, the grammar engine for grammar, then the underlines and the list are updated. Rules the user ignored are passed to the engine as a comma-separated list. The analysis runs in the main thread; the grammar results are cached by paragraph text.
 - Each **save** keeps a version in the history (`%AppData%\Binote\history`), with its differences.

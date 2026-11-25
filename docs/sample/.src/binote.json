@@ -1,6 +1,7 @@
 {
   "Name": "alice",
-  "Destination": "dst",
+  "Destination": ".",
+  "Source": ".src",
   "Language": "en",
   "Order": [
     "01_down_the_rabbit_hole.md",

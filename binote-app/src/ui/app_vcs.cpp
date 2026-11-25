@@ -34,7 +34,7 @@ void App::vcs_refresh()
 	if (_vcs.kind != vcs::None)
 	{
 		std::string out;
-		_vcs_changes = vcs::status(_vcs, _project.source_root, out);
+		_vcs_changes = vcs::status(_vcs, _project.source_root, out, _s.vcs_include_data);
 		if (_vcs_changes.empty() && !out.empty())
 			_vcs_output = out;
 	}
@@ -116,6 +116,9 @@ void App::draw_vcs()
 			save();
 		const bool ok = vcs::update(_vcs, _project.source_root, out);
 		done(ok, "update");
+		// The update changed the work files, and may have brought new chapters: the list is read again, the chapter on screen is loaded again.
+		// The originals (.src) stay as they were: the tags of the tree show which chapters now differ from them.
+		refresh_project();
 		reload_current();
 	}
 	ImGui::SameLine();
@@ -156,6 +159,13 @@ void App::draw_vcs()
 	}
 	ImGui::EndChild();
 
+	if (ImGui::Checkbox(TR("VCS_INCLUDE_DATA"), &_s.vcs_include_data))
+	{
+		_s.save();
+		vcs_refresh();
+	}
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip("%s", TR("VCS_INCLUDE_DATA_HINT"));
 	ImGui::SetNextItemWidth(-130.0f);
 	ImGui::InputTextWithHint("##vcs_message", TR("VCS_MESSAGE"), _vcs_message, sizeof(_vcs_message));
 	ImGui::SameLine();
@@ -164,7 +174,7 @@ void App::draw_vcs()
 	{
 		if (dirty())
 			save();
-		const bool ok = vcs::commit(_vcs, _project.source_root, _vcs_message, out);
+		const bool ok = vcs::commit(_vcs, _project.source_root, _vcs_message, out, _s.vcs_include_data);
 		if (ok)
 			_vcs_message[0] = 0;
 		done(ok, "commit");

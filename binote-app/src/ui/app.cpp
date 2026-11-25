@@ -20,6 +20,7 @@
 #include "ui/app.h"
 #include "project/search.h"
 #include "common/i18n.h"
+#include "common/dialog.h"
 #include "common/json.h"
 #include "script/pyscript.h"
 #include "common/logger.h"
@@ -200,9 +201,26 @@ bool App::open_file_path(const std::string& path, const std::string& destination
 		for (const util::Recent& r : _s.recents)
 			if (r.source == path)
 				dest = r.destination;
-	guard([this, path, dest]() {
+	// The old way: the work was in another file. It is moved to the file itself first (nothing is deleted).
+	if (Project::is_legacy_file(path, dest))
+	{
+		ask("DLG_MIGRATE_TITLE", TR("DLG_MIGRATE_TEXT_FILE"), "BTN_MIGRATE", [this, path, dest]()
+		{
+			std::string report;
+			Project::migrate_file(path, dest, report);
+			status(i18n::fmt(TR("MSG_MIGRATED"), report.c_str()));
+			open_file_now(path);
+		});
+		return true;
+	}
+	return open_file_now(path);
+}
+
+bool App::open_file_now(const std::string& path)
+{
+	guard([this, path]() {
 		Project p;
-		if (!Project::open_file(path, dest, p))
+		if (!Project::open_file(path, "", p))
 		{
 			status(i18n::fmt(TR("MSG_FILE_NOT_FOUND"), path.c_str()));
 			return;
@@ -212,31 +230,43 @@ bool App::open_file_path(const std::string& path, const std::string& destination
 	return true;
 }
 
-// Opens a folder of chapters. A folder without binote.json asks for the destination folder first
+// Opens a folder of chapters. The files of the folder are the work, a copy of each one is kept in the hidden folder .src. A project made the old way
+// (the work in a dst folder) is migrated first, after a question.
 bool App::open_folder_path(const std::string& path, const std::string& destination)
 {
+	(void)destination;
 	if (!util::is_directory(path))
 	{
 		status(i18n::fmt(TR("MSG_FOLDER_NOT_FOUND"), path.c_str()));
 		return false;
 	}
-	if (destination.empty() && !Project::config_exists(path))
+	if (Project::is_legacy_folder(path))
 	{
-		// New project: ask for the destination folder first
-		_dest_folder = path;
-		_dest_input = util::combine(path, "dst");
-		_open_dest = true;
+		ask("DLG_MIGRATE_TITLE", TR("DLG_MIGRATE_TEXT_FOLDER"), "BTN_MIGRATE", [this, path]()
+		{
+			std::string report;
+			if (!Project::migrate_folder(path, report))
+			{
+				status(i18n::fmt(TR("MSG_DATA_ERROR"), report.c_str()));
+				return;
+			}
+			status(i18n::fmt(TR("MSG_MIGRATED"), report.c_str()));
+			open_folder_now(path);
+		});
 		return true;
 	}
-	guard([this, path, destination]() {
+	return open_folder_now(path);
+}
+
+bool App::open_folder_now(const std::string& path)
+{
+	guard([this, path]() {
 		Project p;
-		if (!Project::open_folder(path, destination, p) || p.docs.empty())
+		if (!Project::open_folder(path, "", p) || p.docs.empty())
 		{
 			status(TR("MSG_NO_FILES"));
 			return;
 		}
-		if (!destination.empty())
-			p.save_config();
 		set_project(std::move(p));
 	});
 	return true;
@@ -248,6 +278,8 @@ void App::set_project(Project&& p)
 	_force_reading = false;
 	_project = std::move(p);
 	_has_project = true;
+	History::set_root(_project.meta_dir.empty() ? std::string() : util::combine(_project.meta_dir, "history"), _project.source_root);
+	_project.update_modified();
 	_project_words = -1;
 	_chapter_words.clear();
 	load_goals();
@@ -422,6 +454,9 @@ bool App::open_doc(int index, int line)
 		dst_text = src_text;
 	d.crlf = crlf;
 	d.dirty = false;
+	_saved_dst = dst_text;
+	_saved_dst.erase(std::remove(_saved_dst.begin(), _saved_dst.end(), ''), _saved_dst.end());
+	_dirty_recheck = -1.0;
 	_cur = index;
 	ImGuiProse::SetText(_src.editor, src_text.c_str());
 	ImGuiProse::SetText(_dst.editor, dst_text.c_str());
@@ -467,6 +502,7 @@ bool App::merge_files(const std::string& path)
 		status(i18n::fmt(TR("MSG_SAVE_FAILED"), path.c_str()));
 		return false;
 	}
+	note_written_file(path);
 	status(i18n::fmt(TR("MSG_SAVED"), path.c_str()));
 	return true;
 }
@@ -485,6 +521,7 @@ bool App::save()
 			return false;
 		}
 		_src_dirty = false;
+		refresh_modified(d);
 		status(i18n::fmt(TR("MSG_SAVED"), d->src_path.c_str()));
 		return true;
 	}
@@ -496,6 +533,9 @@ bool App::save()
 	}
 	History::add(d->dst_path, text, "save");
 	d->dirty = false;
+	_saved_dst = text;
+	_saved_dst.erase(std::remove(_saved_dst.begin(), _saved_dst.end(), ''), _saved_dst.end());
+	refresh_modified(d);
 	status(i18n::fmt(TR("MSG_SAVED"), d->dst_path.c_str()));
 	return true;
 }
@@ -1101,6 +1141,35 @@ bool App::command(const std::vector<std::string>& a)
 	if (c == "save") return save();
 	if (c == "lang" && a.size() > 1) { i18n::load(a[1]); return true; }
 	if (c == "excluded") { _show_excluded = true; return true; }
+	if (c == "setoriginal" && a.size() > 1) { set_original(std::atoi(a[1].c_str())); return true; }
+	if (c == "newfile" && a.size() > 1) { create_file(a[1]); return true; }
+	if (c == "undo") { ImGuiProse::Undo(_dst.editor); return true; }
+	if (c == "caret" && a.size() > 2) { ImGuiProse::SetCaret(_dst.editor, ImGuiProsePos(std::atoi(a[1].c_str()), std::atoi(a[2].c_str())), false); return true; }
+	if (c == "sel" && a.size() > 4) { ImGuiProse::SetSelection(_dst.editor, ImGuiProsePos(std::atoi(a[1].c_str()), std::atoi(a[2].c_str())), ImGuiProsePos(std::atoi(a[3].c_str()), std::atoi(a[4].c_str()))); return true; }
+	if (c == "md" && a.size() > 1)
+	{
+		const std::string& k = a[1];
+		if (k == "bold") md_wrap("**", "**");
+		else if (k == "italic") md_wrap("*", "*");
+		else if (k == "strike") md_wrap("~~", "~~");
+		else if (k == "code") md_wrap("`", "`");
+		else if (k == "h0") md_lines(1, 0);
+		else if (k == "h1") md_lines(1, 1);
+		else if (k == "h2") md_lines(1, 2);
+		else if (k == "h3") md_lines(1, 3);
+		else if (k == "bullet") md_lines(2, 0);
+		else if (k == "numbered") md_lines(3, 0);
+		else if (k == "quote") md_lines(4, 0);
+		else if (k == "task") md_lines(5, 0);
+		else if (k == "link") md_link();
+		else if (k == "codeblock") md_code_block();
+		else if (k == "rule") md_rule();
+		return true;
+	}
+	if (c == "confirm") { _yesno_accept = true; return true; }
+	if (c == "deletedata") { delete_project_data(); return true; }
+	if (c == "exportdata" && a.size() > 1) { std::string error; if (_has_project && _project.export_data(a[1], error)) status(a[1]); else status(error); return true; }
+	if (c == "importdata" && a.size() > 1) { import_project_data(a[1]); return true; }
 	if (c == "refresh") { refresh_project(); return true; }
 	if (c == "reorder" && a.size() > 2) { reorder_doc(std::atoi(a[1].c_str()), std::atoi(a[2].c_str())); return true; }
 	if (c == "exclude" && a.size() > 1) { exclude_doc(std::atoi(a[1].c_str())); return true; }
@@ -1144,7 +1213,7 @@ bool App::command(const std::vector<std::string>& a)
 	if (c == "replace" && a.size() > 1) { if (a[1] == "project") replace_in_project(); else replace_in_editor(a[1] == "all"); return true; }
 	if (c == "anchors") { const auto s = ImGuiProse::GetScrollAnchor(_src.editor), d = ImGuiProse::GetScrollAnchor(_dst.editor); printf("src %d %.3f %.3f  dst %d %.3f %.3f settle=%d\n", s.Paragraph, s.Fraction, ImGuiProse::GetScrollFraction(_src.editor), d.Paragraph, d.Fraction, ImGuiProse::GetScrollFraction(_dst.editor), _sync_settle); return true; }
 	if (c == "vcs") { _show_vcs = true; vcs_refresh(); return true; }
-	if (c == "vcscommit" && a.size() > 1) { std::string out; if (dirty()) save(); const bool ok = vcs::commit(_vcs, _project.source_root, a[1], out); vcs_refresh(); printf("commit %d: %s\n", (int)ok, out.c_str()); return true; }
+	if (c == "vcscommit" && a.size() > 1) { std::string out; if (dirty()) save(); const bool ok = vcs::commit(_vcs, _project.source_root, a[1], out, _s.vcs_include_data); vcs_refresh(); printf("commit %d: %s\n", (int)ok, out.c_str()); return true; }
 	if (c == "names") { _show_names = true; return true; }
 	if (c == "note" && a.size() > 1) { add_note_here(); snprintf(_note_text, sizeof(_note_text), "%s", a[1].c_str()); const Doc* d = current_doc(); const auto paras = paragraphs(_dst.editor); if (d && _note_target_para >= 1 && _note_target_para <= (int)paras.size()) { _open_note = false; _notes.push_back({ d->rel, paras[(size_t)_note_target_para - 1].substr(0, 30), _note_target_para, a[1] }); save_notes(); rebuild_spans(); } return true; }
 	if (c == "shownotes") { _show_notes = true; return true; }
@@ -1566,4 +1635,209 @@ std::string App::style_advice(const style::Observation& o)
 			}
 	}
 	return advice;
+}
+
+//-----------------------------------------------------------------------------
+// Working in place: questions, project data
+//-----------------------------------------------------------------------------
+
+// The same text whatever the line breaks
+static bool same_text(std::string a, std::string b)
+{
+	a.erase(std::remove(a.begin(), a.end(), '\r'), a.end());
+	b.erase(std::remove(b.begin(), b.end(), '\r'), b.end());
+	return a == b;
+}
+
+// The chapter is modified when its text differs from the one on disk: after undo has brought everything back, it is not any more
+void App::recheck_dirty()
+{
+	_dirty_recheck = -1.0;
+	Doc* d = current_doc();
+	if (!d || !d->dirty)
+		return;
+	if (same_text(editor_text(_dst.editor), _saved_dst))
+		d->dirty = false;
+}
+
+void App::refresh_modified(Doc* d)
+{
+	if (!d)
+		return;
+	std::string original, work;
+	util::read_text(d->src_path, original);
+	util::read_text(d->dst_path, work);
+	d->modified = !same_text(original, work);
+}
+
+// The work of a chapter becomes its original: for a file changed outside Binote (svn update, git pull...) or a rewrite which is now the base
+void App::set_original(int index)
+{
+	if (!_has_project || index < 0 || index >= (int)_project.docs.size())
+		return;
+	auto apply = [this, index]()
+	{
+		Doc& d = _project.docs[index];
+		std::error_code ec;
+		std::filesystem::create_directories(std::filesystem::u8path(util::parent_path(d.src_path)), ec);
+		std::filesystem::copy_file(std::filesystem::u8path(d.dst_path), std::filesystem::u8path(d.src_path), std::filesystem::copy_options::overwrite_existing, ec);
+		d.modified = false;
+		if (index == _cur)
+			open_doc(index);
+		status(i18n::fmt(TR("MSG_ORIGINAL_SET"), d.rel.c_str()));
+	};
+	if (index == _cur)
+		guard(apply);					// the work on screen is saved first
+	else
+		apply();
+}
+
+void App::ask(const char* title_key, const std::string& text, const char* ok_key, std::function<void()> action)
+{
+	_yesno_title = TR(title_key);
+	_yesno_text = text;
+	// The texts of the language files are on one line: a backslash and n is a line break
+	for (size_t at = _yesno_text.find("\\n"); at != std::string::npos; at = _yesno_text.find("\\n", at + 1))
+		_yesno_text.replace(at, 2, "\n");
+	_yesno_ok = TR(ok_key);
+	_yesno_action = action;
+	_open_yesno = true;
+}
+
+// File > New: a save dialog names the file, which is created empty and opened. In the folder of the open project it is a new chapter.
+void App::new_file()
+{
+	const std::string initial = _has_project && _project.is_folder ? util::combine(_project.source_root, "new.md") : std::string();
+	std::string path;
+	if (!dialog::save_file_dialog(initial, path, "Texte / Markdown", "*.md;*.markdown;*.txt"))
+		return;
+	create_file(path);
+}
+
+bool App::create_file(const std::string& wanted)
+{
+	std::string path = wanted;
+	if (std::filesystem::u8path(path).extension().empty())
+		path += ".md";
+	if (util::exists(path))
+	{
+		status(i18n::fmt(TR("MSG_FILE_EXISTS"), path.c_str()));
+		return false;
+	}
+	std::error_code ec;
+	std::filesystem::create_directories(std::filesystem::u8path(util::parent_path(path)), ec);
+	if (!util::write_text(path, "", false))
+	{
+		status(i18n::fmt(TR("MSG_SAVE_FAILED"), path.c_str()));
+		return false;
+	}
+	status(i18n::fmt(TR("MSG_CREATED"), path.c_str()));
+	// In the folder of the project: a new chapter, listed after the others
+	if (_has_project && _project.is_folder && std::filesystem::equivalent(std::filesystem::u8path(util::parent_path(path)), std::filesystem::u8path(_project.source_root), ec))
+	{
+		const std::string rel = util::file_name(path);
+		_project.excluded.erase(std::remove(_project.excluded.begin(), _project.excluded.end(), rel), _project.excluded.end());
+		_project.config_excluded.erase(std::remove(_project.config_excluded.begin(), _project.config_excluded.end(), rel), _project.config_excluded.end());
+		refresh_project();
+		for (int i = 0; i < (int)_project.docs.size(); i++)
+			if (_project.docs[i].rel == rel)
+				request_open_doc(i);
+		return true;
+	}
+	return open_file_path(path);
+}
+
+// Leaves the project: the panes are emptied
+void App::close_project()
+{
+	_has_project = false;
+	_project = Project();
+	_cur = -1;
+	_project_words = -1;
+	_chapter_words.clear();
+	_headings.clear();
+	History::set_root(std::string(), std::string());
+	ImGuiProse::SetText(_src.editor, "");
+	ImGuiProse::SetText(_dst.editor, "");
+	_src.md_version = _dst.md_version = -1;
+	_diff_due = ImGui::GetTime();
+}
+
+// Opens the same project again (after the data were replaced)
+void App::reopen_project()
+{
+	if (!_has_project)
+		return;
+	const bool folder = _project.is_folder;
+	const std::string path = folder ? _project.source_root : _project.docs[0].dst_path;
+	if (folder)
+		open_folder_now(path);
+	else
+		open_file_now(path);
+}
+
+// A file written in the folder of the project (export, merge, table of contents): it is not a chapter
+void App::note_written_file(const std::string& path)
+{
+	if (!_has_project || !_project.is_folder)
+		return;
+	std::error_code ec;
+	if (!std::filesystem::equivalent(std::filesystem::u8path(util::parent_path(path)), std::filesystem::u8path(_project.source_root), ec))
+		return;
+	const std::string current = _cur >= 0 && _cur < (int)_project.docs.size() ? _project.docs[_cur].rel : std::string();
+	_project.auto_exclude(util::file_name(path));
+	for (int i = 0; i < (int)_project.docs.size(); i++)
+		if (_project.docs[i].rel == current)
+			_cur = i;
+}
+
+void App::export_project_data()
+{
+	if (!_has_project)
+		return;
+	std::string path;
+	const std::string initial = util::combine(_project.is_folder ? _project.source_root : util::parent_path(_project.docs[0].dst_path), _project.name + "-binote-data.zip");
+	if (!dialog::save_file_dialog(initial, path, "ZIP", "*.zip"))
+		return;
+	if (std::filesystem::u8path(path).extension().empty())
+		path += ".zip";
+	std::string error;
+	if (_project.export_data(path, error))
+		status(i18n::fmt(TR("MSG_DATA_EXPORTED"), path.c_str()));
+	else
+		status(i18n::fmt(TR("MSG_DATA_ERROR"), error.c_str()));
+}
+
+void App::import_project_data(const std::string& archive)
+{
+	if (!_has_project || archive.empty())
+		return;
+	ask("DLG_DATA_IMPORT_TITLE", TR("DLG_DATA_IMPORT_TEXT"), "BTN_IMPORT", [this, archive]()
+	{
+		std::string error;
+		if (_project.import_data(archive, error))
+		{
+			status(TR("MSG_DATA_IMPORTED"));
+			reopen_project();
+		}
+		else
+			status(i18n::fmt(TR("MSG_DATA_ERROR"), error.c_str()));
+	});
+}
+
+void App::delete_project_data()
+{
+	if (!_has_project)
+		return;
+	ask("DLG_DATA_DELETE_TITLE", i18n::fmt(TR("DLG_DATA_DELETE_TEXT"), _project.name.c_str()), "BTN_DELETE_DATA", [this]()
+	{
+		std::string error;
+		if (_project.delete_data(error))
+		{
+			close_project();
+			status(TR("MSG_DATA_DELETED"));
+		}
+		else
+			status(i18n::fmt(TR("MSG_DATA_ERROR"), error.c_str()));
+	});
 }

@@ -48,7 +48,7 @@ The combo box of the toolbar (and the **View** menu: *Reading: original only*, *
 
 Everything else works in any of the three: the outline and the chapters, the line and paragraph numbers, find and replace, the spelling and grammar checkers and their list of problems, the style analysis, the French typography, the notes, the scripts, the history, the statistics and objectives, the version control and the export. Only the differences and the alignment of paragraphs belong to the dual view.
 
-To write a text from nothing, open an empty or short file and choose *Work*: the destination is saved in the `dst` folder beside it, as usual.
+To write a text from nothing, open an empty or short file and choose *Work*: you write in the file itself, as usual.
 
 ## The toolbar and the menus
 
@@ -76,7 +76,6 @@ From left to right (each button shows its name when the mouse stays on it):
 | **File** | Open a file, Open a folder, Recent files (and *Clear the list*), Save the destination, Versions (Git / SVN), Export, Save the destination as, Merge files, Reset the chapter from the source, Preferences, Destination folder, Quit |
 | **Edit** | Undo, Redo; Find, Next match, Find in all chapters, Go to line / paragraph, Next / Previous paragraph, Next / Previous difference; Character map, Align with a paragraph of the other pane, Remove the alignments of the file, Note on the paragraph, List of the notes; Insert a no-break space, a narrow no-break space, guillemets « » |
 | **View** | Word wrap, Line numbers, Paragraph numbers, Mark the differences, Synchronize source / destination, Align the paragraphs, Show no-break spaces, Show invisible characters; Project tree, Reading: original only, Destination only, Log, Open the log folder, Dark theme, Monospaced font in the editors; Current paragraph highlight, Highlight color, Language, Zoom in, Zoom out |
-| **Mode** | Text or Markdown: how the file is read (Markdown headings and the preview, or plain text) |
 | **Tools** | Statistics, Style analysis, Generate the table of contents, Proper names of the project, Change history, Add a version to the history; Language of the project text, Grammar checker, List of the problems, Switch the ignored rules on again, Spell checker, Automatic typography while typing, Fix the typography of the paragraph / of the chapter; Save when changing chapter |
 | **Scripts** | the scripts by category, Edit the scripts, Refresh the list, Open the scripts folder |
 | **Help** | About Binote (the version, the licence, the components, the Python which was found) |
@@ -85,10 +84,13 @@ The shortcuts are in [Keyboard shortcuts](#keyboard-shortcuts).
 
 ## Opening a text
 
-- **File > Open a file** (Ctrl+O): a `.md`, `.markdown` or `.txt` file. The destination is a file named after the source in a `dst` folder, created at the first save. **File > Recent files** lists the last ones, with their destination as a tip.
-- **File > Open a folder** (Ctrl+Shift+O): a multi-chapter project, one file per chapter. The first time, Binote asks for the destination folder and writes a `binote.json` file. The chapters can be reordered with the arrows of the tree.
+- **File > New file** (Ctrl+N, or the **+** button): a save dialog names the file, which is created empty and opened. In the folder of the open project it is a new chapter, listed after the others. **Edit > Markdown** and the **row of buttons under the toolbar** (shown for Markdown texts, hidden with **View > Markdown bar**) write the basic codes: **B**old (Ctrl+B), **I**talic (Ctrl+I), **S**trikethrough, `code`, headings 1 to 4 (**H**), bulleted, numbered and task lists, quote, link (Ctrl+K), code block and horizontal rule. They act on the selection (or on the word at the caret, or on the lines of the selection for the headings, lists and quote); the same button again takes the marks off. Each action is one step of the undo.
+- **File > Open a file** (Ctrl+O): a `.md`, `.markdown` or `.txt` file. **You work in the file itself**, so that Git or SVN follow it. A copy of the file is kept in the hidden folder `.src` beside it: it is the **Original** view. **File > Recent files** lists the last ones.
+- **File > Open a folder** (Ctrl+Shift+O): a multi-chapter project, one file per chapter. **You work in the files of the folder**; the first time, Binote creates the hidden folder `.src`, with a copy of each chapter (the **Original** view), the file `binote.json`, the notes and the history of the changes. The chapters can be reordered by dragging them in the tree, or with its arrows.
+  - A project made with an older version (the work in a `dst` folder) is **migrated** after a question: the originals go to `.src`, the work replaces the files of the folder, `binote.json`, the notes and the history move to `.src`, and the old `dst` folder is kept in `.src`. Nothing is deleted.
+  - In the tree, a small tag at the right of a chapter is **orange** when it was changed and not saved, **green** when it is saved and different from the original.
 - A file given by the system (double click, *Open with*) opens as chosen in the preferences: reading, preview or normal editing.
-- **File > Merge files** writes all the chapters in one file. **File > Destination folder** changes where the work is written; **File > Save the destination as** saves a copy under another name.
+- **File > Merge files** writes all the chapters in one file. **File > Save the destination as** saves a copy of a single file under another name. **File > Project data** exports the data of the project (the contents of `.src`) to a ZIP archive, imports an archive made so, or **deletes** them after a confirmation (your files are not touched). A file written in the folder of the project by an export, a merge or the table of contents is not taken for a chapter.
 - **Tools > Save when changing chapter** saves the work by itself when you go to another chapter (otherwise Binote asks).
 - The language of the text (dictionary, typography, grammar) is set in **Tools > Language of the project text**, or with the language button at the right of the status bar. It is not the language of the interface (**View > Language**).
 
@@ -247,7 +249,7 @@ Edit, **Check** the syntax, **Test** on the current text, **New** and **Duplicat
 
 ### History
 
-Each save keeps a version of the destination (**Tools > Add a version to the history** adds one by hand, and a preference saves one automatically every 90 seconds). **Tools > Change history** (Ctrl+H, or the last button of the toolbar) shows the differences between a chosen version (red) and the current text (green); **Restore this version** brings it back, **Delete** removes it, and *Differences only* shows only the lines which changed.
+Each save keeps a version of the work, in `.src/history`, as the differences with the previous version (a whole text only from time to time), so that it stays small (**Tools > Add a version to the history** adds one by hand, and a preference saves one automatically every 90 seconds). **Tools > Change history** (Ctrl+H, or the last button of the toolbar) shows the differences between a chosen version (red) and the current text (green); **Restore this version** brings it back, **Delete** removes it, and *Differences only* shows only the lines which changed.
 
 ![Change history](images/history.png)
 
@@ -273,9 +275,11 @@ Each save keeps a version of the destination (**Tools > Add a version to the his
 
 **File > Versions (Git / SVN)** detects a Git or Subversion working folder (the commands `git` or `svn` must be installed) and shows its branch and the changed files. The buttons: *Refresh*; *Update (pull / update)*; *Push*; *History of the file* and *Differences of the file* for the chapter which is open (*Update* saves the work first and reloads the chapter afterwards); and, below, a *Revision message* with *Commit*. A folder without a repository can be initialized with *Create a Git repository here*.
 
+The files of your project are the work, so they are what the window lists and commits. The hidden folder `.src` (the originals, `binote.json`, the notes, the history) is Binote's own data: it is **not listed and not committed**, unless you tick *Include the project data (.src) in the commits*. With Subversion, a new folder is added without its `.src`. After an *Update*, the list of the chapters is read again (new files appear) and the chapter on screen is loaded again; the originals stay as they were, so the chapters changed by the update get the green tag of the tree, and *Use the work as the original* (right click in the tree) takes the new version as the base.
+
 ## Export
 
-**File > Export** writes the destination of all the chapters in one file (tick *Export the original (source) instead of the destination* for the original).
+**File > Export** writes the work of all the chapters in one file, by default in the folder of the project (tick *Export the original (source) instead of the destination* for the original). The formats are PDF, Word, EPUB, HTML, Markdown and **plain text** (`.txt`, without any Markdown code).
 
 ![Export](images/export.png)
 
@@ -302,7 +306,7 @@ Formats: **PDF**, **Word** (.docx), **EPUB 3**, **HTML**, **Markdown** (one file
 
 **View menu**: word wrap (Alt+Z), line and paragraph numbers, mark the differences, synchronized scrolling, the ghost lines of the aligned paragraphs, the markers of the spaces and of the invisible characters, the project tree (F9), the Original and Work views, the log (Ctrl+L) and its folder, the dark theme (Ctrl+T), a monospaced font in the editors, the highlight of the current paragraph (*None*, *Background*, *Text* or *Background + text*) and its colour, the language of the interface (English, French or Spanish), and the zoom (Ctrl++ and Ctrl+-).
 
-**Mode menu**: *Text* or *Markdown*.
+**Kind of text**: it follows the extension of the file, `.md` and `.markdown` for Markdown (headings, preview, Markdown buttons), `.txt` for plain text, and the status bar shows it (**MD** or **TXT**, left of the language). To read a text as Markdown, give it the extension `.md`.
 
 **Log** (Ctrl+L): the log of the application, for the errors of the scripts.
 
@@ -362,14 +366,14 @@ A file or a folder given on the command line is opened at start (this is also wh
 
 | File | Where | Content |
 | --- | --- | --- |
-| `binote.json` | project folder | name, destination folder, language, order of the chapters |
-| `binote.notes` | project folder | the notes |
-| `binote.align` | project folder | the alignments of paragraphs |
+| `binote.json` | `.src` of the project | name, language, order of the chapters, excluded files |
+| `binote.notes` | `.src` of the project | the notes |
+| `binote.align` | `.src` of the project | the alignments of paragraphs |
 | `settings.ini`, `goals.ini`, `dictionary.txt` | `%AppData%\Binote` | preferences, objectives, personal words |
-| `history/` | `%AppData%\Binote` | the versions of the destinations |
+| `history/` | `.src` of the project | the versions of the chapters |
 | `scripts/`, `scripts.ini` | `%AppData%\Binote` | your scripts and the values of their parameters |
 | `grammar/` | `%AppData%\Binote` | your own languages for the grammar engine (optional) |
-| `SOMMAIRE.md` | destination folder | the table of contents, when you ask for it |
+| `SOMMAIRE.md` | project folder | the table of contents, when you ask for it |
 
 The original (source) files are never modified, except in the *Original* view when you tick *Edit*.
 

@@ -27,7 +27,7 @@
 
 namespace exporter
 {
-	enum Format { Markdown, Html, Docx, Epub, Pdf };
+	enum Format { Markdown, Html, Docx, Epub, Pdf, Text };
 
 	struct Run
 	{
@@ -65,6 +65,15 @@ namespace exporter
 	bool write(const std::string& path, const std::vector<Chapter>& chapters, const Options& options, std::string& error);
 
 	std::string extension(Format format);			// ".pdf"...
+
+	// A ZIP archive (files stored without compression): the .docx and .epub files, and the export of the data of a project
+	struct ZipEntry
+	{
+		std::string name, data;
+	};
+	bool zip_write(const std::string& path, const std::vector<ZipEntry>& entries, std::string& error);
+	// Reads an archive written by zip_write (stored entries only); false and the reason in error otherwise
+	bool zip_read(const std::string& path, std::vector<ZipEntry>& entries, std::string& error);
 }
 
 #endif

@@ -205,11 +205,18 @@ namespace vcs
 	}
 
 	// Changed files with their state (modified, added, deleted, untracked...)
-	std::vector<Change> status(const Info& info, const std::string& folder, std::string& output)
+	// A path of the data of Binote: .src, or something in it
+	static bool is_data_path(const std::string& path)
+	{
+		return path == ".src" || path == ".src/" || path.compare(0, 5, ".src/") == 0 || path.compare(0, 5, ".src" + std::string(1, (char)92)) == 0;
+	}
+
+	std::vector<Change> status(const Info& info, const std::string& folder, std::string& output, bool with_data)
 	{
 		std::vector<Change> list;
 		std::string out;
-		const bool ok = info.kind == Git ? run(folder, { "git", "status", "--porcelain", "-uall", "--", "." }, out) : run(folder, { "svn", "status", "--non-interactive", "." }, out);
+		const bool ok = info.kind == Git ? (with_data ? run(folder, { "git", "status", "--porcelain", "-uall", "--", "." }, out) : run(folder, { "git", "status", "--porcelain", "-uall", "--", ".", ":(exclude).src" }, out))
+			: run(folder, { "svn", "status", "--non-interactive", "." }, out);
 		output = out;
 		if (!ok)
 			return list;
@@ -247,28 +254,53 @@ namespace vcs
 				c.status = "?";
 			if (c.path.size() > 1 && c.path[0] == '"')
 				c.path = c.path.substr(1, c.path.size() - 2);
+			if (!with_data && is_data_path(c.path))
+				continue;
 			list.push_back(c);
 		}
 		return list;
 	}
 
 	// Adds the changes of the folder and commits them with the message (git add -A, svn add)
-	bool commit(const Info& info, const std::string& folder, const std::string& message, std::string& output)
+	bool commit(const Info& info, const std::string& folder, const std::string& message, std::string& output, bool with_data)
 	{
 		std::string out;
 		if (info.kind == Git)
 		{
-			if (!run(folder, { "git", "add", "-A", "--", "." }, out))
+			std::vector<std::string> paths = { "." };
+			if (!with_data)
+				paths.push_back(":(exclude).src");
+			std::vector<std::string> add = { "git", "add", "-A", "--" }, commit_args = { "git", "commit", "-m", message, "--" };
+			add.insert(add.end(), paths.begin(), paths.end());
+			commit_args.insert(commit_args.end(), paths.begin(), paths.end());
+			if (!run(folder, add, out))
 			{
 				output = out;
 				return false;
 			}
-			const bool ok = run(folder, { "git", "commit", "-m", message, "--", "." }, output);
-			return ok;
+			return run(folder, commit_args, output);
 		}
 		if (info.kind == Svn)
 		{
-			run(folder, { "svn", "add", "--force", "--depth", "infinity", "--non-interactive", "." }, out);
+			// What is new is added file by file: svn add of the whole folder would take .src too
+			if (with_data)
+				run(folder, { "svn", "add", "--force", "--depth", "infinity", "--non-interactive", "." }, out);
+			else
+			{
+				// A new folder is added empty, then what is in it: the next status lists its files (and .src is never one of them)
+				for (int pass = 0; pass < 8; pass++)
+				{
+					int added = 0;
+					for (const Change& c : status(info, folder, out, false))
+						if (c.status == "?")
+						{
+							run(folder, { "svn", "add", "--force", "--parents", "--depth", "empty", "--non-interactive", c.path }, out);
+							added++;
+						}
+					if (!added)
+						break;
+				}
+			}
 			return run(folder, { "svn", "commit", "--non-interactive", "-m", message, "." }, output);
 		}
 		output = "No repository";

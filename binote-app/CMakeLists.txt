@@ -44,6 +44,7 @@ add_executable(binote
 	src/ui/app_style_extra.cpp
 	src/ui/app_script.cpp
 	src/ui/app_links.cpp
+	src/ui/app_format.cpp
 	src/ui/app_vcs.cpp
 	src/vcs/vcs.cpp
 	src/ui/app_ui.cpp

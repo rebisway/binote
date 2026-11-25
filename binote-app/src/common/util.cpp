@@ -263,6 +263,8 @@ namespace util
 			else if (key == "sync_scroll") sync_scroll = b;
 			else if (key == "align_paragraphs") align_paragraphs = b;
 			else if (key == "show_tree") show_tree = b;
+			else if (key == "format_bar") format_bar = b;
+			else if (key == "vcs_include_data") vcs_include_data = b;
 			else if (key == "show_log") show_log = b;
 			else if (key == "reopen_last") reopen_last = b;
 			else if (key == "python_seen") python_seen = b;
@@ -333,7 +335,7 @@ namespace util
 		std::ostringstream o;
 		o << "dark=" << dark << "\nwrap=" << wrap << "\nmarkdown=" << markdown << "\nline_numbers=" << line_numbers
 			<< "\nparagraph_numbers=" << paragraph_numbers << "\nshow_diff=" << show_diff << "\nsync_scroll=" << sync_scroll << "\nalign_paragraphs=" << align_paragraphs
-			<< "\nshow_tree=" << show_tree << "\nshow_log=" << show_log << "\nreopen_last=" << reopen_last << "\npython_seen=" << python_seen << "\npython_never=" << python_never << "\nspell_check=" << spell_check << "\ngrammar_check=" << grammar_check << "\ngrammar_ignored=" << grammar_ignored << "\nsystem_open_mode=" << system_open_mode << "\nquote_style=" << quote_style << "\nexport_format=" << export_format << "\nexport_author=" << export_author << "\nlog_height=" << log_height << "\nreading_mode=" << reading_mode << "\ndest_only=" << dest_only << "\nautosave_on_switch=" << autosave_on_switch << "\nauto_snapshot=" << auto_snapshot
+			<< "\nshow_tree=" << show_tree << "\nformat_bar=" << format_bar << "\nvcs_include_data=" << vcs_include_data << "\nshow_log=" << show_log << "\nreopen_last=" << reopen_last << "\npython_seen=" << python_seen << "\npython_never=" << python_never << "\nspell_check=" << spell_check << "\ngrammar_check=" << grammar_check << "\ngrammar_ignored=" << grammar_ignored << "\nsystem_open_mode=" << system_open_mode << "\nquote_style=" << quote_style << "\nexport_format=" << export_format << "\nexport_author=" << export_author << "\nlog_height=" << log_height << "\nreading_mode=" << reading_mode << "\ndest_only=" << dest_only << "\nautosave_on_switch=" << autosave_on_switch << "\nauto_snapshot=" << auto_snapshot
 			<< "\nshow_nbsp=" << show_nbsp << "\nshow_invisible=" << show_invisible << "\nauto_typography=" << auto_typography << "\nmono_editor=" << mono_editor
 			<< "\nhighlight_mode=" << highlight_mode << "\naccent=" << accent << "\naccent_custom=" << accent_custom[0] << "," << accent_custom[1] << "," << accent_custom[2] << "," << accent_custom[3]
 			<< "\ninvisible_colors=" << invisible_colors[0] << "," << invisible_colors[1] << "," << invisible_colors[2] << "," << invisible_colors[3] << "," << invisible_colors[4] << "," << invisible_colors[5] << "," << invisible_colors[6] << "\nfont_size=" << font_size << "\ntree_width=" << tree_width

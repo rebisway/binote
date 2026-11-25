@@ -101,6 +101,9 @@
     <ClCompile Include="src\ui\app_links.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>
+    <ClCompile Include="src\ui\app_format.cpp">
+      <Filter>src\ui</Filter>
+    </ClCompile>
     <ClCompile Include="src\ui\app_vcs.cpp">
       <Filter>src\ui</Filter>
     </ClCompile>

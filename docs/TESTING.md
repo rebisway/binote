@@ -47,6 +47,11 @@ Any other command goes to the application. Arguments are split on spaces; a path
 | `sysopen PATH`, `sysmode N` | open as the system does ("Open with"); the mode of opening files given by the system |
 | `save`, `savestate` | save the destination; save the state of the session |
 | `doc N` | go to the chapter N |
+| `md bold\|italic\|strike\|code\|h0..h3\|bullet\|numbered\|task\|quote\|link\|codeblock\|rule` | the action of a Markdown button on the selection of the work |
+| `newfile FILE` | create an empty file (a chapter in the folder of the open project) and open it |
+| `caret LINE COL`, `sel LINE1 COL1 LINE2 COL2` | place the caret or the selection in the work |
+| `confirm` | answer yes to the question on screen (migration, deleting or importing the project data) |
+| `exportdata FILE`, `importdata FILE`, `deletedata` | export, import (then `confirm`) or delete (then `confirm`) the project data |
 | `excluded` | open the window of the excluded files |
 | `reorder FROM TO`, `refresh` | move a chapter in the tree, read the folder again |
 | `exclude N` / `include FILE` | take the chapter N out of the project / put an excluded file back |
@@ -103,7 +108,7 @@ binote-app\build\binote.exe --script test.txt --width 1280 --height 800
 
 The images in `docs/images` are taken with `shot` on the sample project `docs/sample` (an excerpt of *Alice's Adventures in Wonderland*, public domain), with the interface in English. Open the window with its command (`problems`, `stats`, `history`...), `wait` a few frames, `shot`.
 
-Take them from a fresh copy of `docs/sample` each time (some scripts change the destination), with `APPDATA` pointing to an empty folder so that your preferences are not used or changed, at `--width 1600 --height 837`, and the project language set to `en_GB` in the copy (`"Language": "en_GB"` in its `binote.json`) so that the spelling is on.
+Take them from a fresh copy of `docs/sample` each time (some scripts change the work), with `APPDATA` pointing to an empty folder so that your preferences are not used or changed, at `--width 1600 --height 837`, and the project language set to `en_GB` in the copy (`"Language": "en_GB"` in its `binote.json`) so that the spelling is on.
 
 ## Testing the typography engine
 

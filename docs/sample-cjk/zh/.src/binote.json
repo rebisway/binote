@@ -1,0 +1,9 @@
+{
+  "Name": "zh",
+  "Destination": ".",
+  "Source": ".src",
+  "Language": "zh",
+  "Order": [
+    "01_kuangren.md"
+  ]
+}

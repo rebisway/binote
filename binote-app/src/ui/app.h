@@ -465,8 +465,42 @@ private:
 	void draw_toolbar();
 	void draw_body();
 	void draw_tree(float width, float height);
+	// Markdown buttons (app_format.cpp)
+	ImGuiProseEditor* format_editor() const;
+	void md_wrap(const char* left, const char* right);		// bold, italic, strikethrough, code
+	void md_lines(int kind, int level);						// 1 heading (level 0: normal text), 2 bullets, 3 numbers, 4 quote, 5 tasks
+	void md_link();
+	void md_code_block();
+	void md_rule();
+	bool draw_format_buttons();
+	float format_buttons_width() const;
+	bool _format_row = false;								// the toolbar is too narrow: the buttons have a row of their own under it
 	void exclude_doc(int index);					// takes a chapter out of the project (the file stays in the folder)
 	void include_doc(const std::string& rel);		// puts an excluded file back
+	// A yes / no question: migration of an old project, deleting or replacing the data of the project
+	bool _open_yesno = false, _yesno_accept = false;			// _yesno_accept: the bridge presses the button
+	std::string _yesno_title, _yesno_text, _yesno_ok;
+	std::function<void()> _yesno_action;
+	void ask(const char* title_key, const std::string& text, const char* ok_key, std::function<void()> action);
+	void draw_yesno();
+	bool open_file_now(const std::string& path);
+	bool open_folder_now(const std::string& path);
+	void new_file();										// creates an empty file (a chapter of the open folder, or a file of its own) and opens it
+	bool create_file(const std::string& path);
+	void close_project();
+	void reopen_project();
+	void export_project_data();
+	void import_project_data(const std::string& archive);
+	void delete_project_data();
+	void note_written_file(const std::string& path);		// a file written in the project folder (export, merge, table of contents) is not a chapter
+	void refresh_modified(Doc* d);
+	void set_original(int index);							// the work of a chapter becomes its original (the reference copy in .src)
+	int _original_request = -1;							// is the work different from the original?
+	std::string _saved_dst;									// the text of the work as it is on disk (line breaks apart): the changes undone make the chapter unmodified again
+	double _dirty_recheck = -1.0;
+	int _dirty_version = -1;								// version of the work editor which was last compared with the disk
+	void recheck_dirty();
+	int _export_scope = 0;								// export: 0 the whole folder, 1 the file being worked on
 	int _reorder_from = -1, _reorder_to = -1;		// drag and drop in the tree, done after the tree is drawn
 	int _tree_press = -1;							// chapter on which the mouse was pressed: opened on release, unless it was dragged
 	bool _tree_dragged = false;

@@ -71,6 +71,7 @@ xcopy /E /I /Y /Q "$(SolutionDir)typography-engine\profiles" "$(OutDir)typograph
     <ClCompile Include="src\ui\app_style_extra.cpp" />
     <ClCompile Include="src\ui\app_script.cpp" />
     <ClCompile Include="src\ui\app_links.cpp" />
+    <ClCompile Include="src\ui\app_format.cpp" />
     <ClCompile Include="src\ui\app_vcs.cpp" />
     <ClCompile Include="src\vcs\vcs.cpp" />
     <ClCompile Include="src\ui\app_ui.cpp" />

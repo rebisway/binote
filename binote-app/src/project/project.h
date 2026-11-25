@@ -41,6 +41,7 @@ struct Doc
 	std::string dst_path;
 	std::vector<Heading> headings;
 	bool dirty = false;
+	bool modified = false;				// saved, and different from the original (the reference copy in .src)
 	bool crlf = false;
 	bool is_markdown() const;
 };
@@ -61,6 +62,21 @@ public:
 	std::vector<std::string> config_excluded;		// files of the folder which are not chapters of the project (binote.json: "Excluded")
 	std::vector<std::string> excluded;				// the excluded files which are in the folder (set by refresh)
 	std::vector<Doc> docs;
+
+	// The way of working: the files of the project folder (or the opened file) are the work, edited in place so that Git or SVN follow them. A copy of each
+	// original is kept in the hidden folder .src: it is the "Original" view. binote.json, the notes and the history of the changes are kept there too.
+	bool in_place() const { return !config_source.empty(); }
+	std::string data_folder() const { return meta_dir; }			// .src
+	// The old way: the work in another folder (dst). Such a project (or file) is migrated before it is opened.
+	static bool is_legacy_folder(const std::string& folder);
+	static bool migrate_folder(const std::string& folder, std::string& report);
+	static bool is_legacy_file(const std::string& file, const std::string& destination_file);
+	static bool migrate_file(const std::string& file, const std::string& destination_file, std::string& report);
+	void update_modified();											// sets Doc::modified of every chapter (the work compared with the original)
+	void auto_exclude(const std::string& rel);						// a file written by Binote in the folder (export, table of contents) is not a chapter
+	bool delete_data(std::string& error);							// removes .src: the originals, binote.json, notes, history. The work is not touched.
+	bool export_data(const std::string& archive, std::string& error) const;
+	bool import_data(const std::string& archive, std::string& error);
 
 	static bool config_exists(const std::string& folder);
 	// destination: empty = the one of the project file, or <folder>/dst

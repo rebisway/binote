@@ -612,12 +612,59 @@ namespace toc
 // History
 //-----------------------------------------------------------------------------
 
-// Folder of the snapshots of a document: one folder per document, named after a hash of its path
-static std::string history_dir(const std::string& key)
+static std::string g_history_root, g_history_base;
+
+// The old place: <data>/history/<hash of the whole path>
+static std::string legacy_history_dir(const std::string& key)
 {
 	char buf[32];
 	snprintf(buf, sizeof(buf), "%016llx", (unsigned long long)std::hash<std::string>()(key));
 	return util::combine(util::combine(util::data_path(), "history"), buf);
+}
+
+// Folder of the snapshots of a document: one folder per document, named after a hash of its path (relative to the project when it has a folder)
+static std::string history_dir(const std::string& key)
+{
+	if (g_history_root.empty())
+		return legacy_history_dir(key);
+	std::string rel = key;
+	std::replace(rel.begin(), rel.end(), '\\', '/');
+	std::string base = g_history_base;
+	std::replace(base.begin(), base.end(), '\\', '/');
+	while (!base.empty() && base.back() == '/')
+		base.pop_back();
+	if (!base.empty() && rel.size() > base.size() && rel.compare(0, base.size(), base) == 0 && rel[base.size()] == '/')
+		rel = rel.substr(base.size() + 1);
+	char buf[32];
+	snprintf(buf, sizeof(buf), "%016llx", (unsigned long long)std::hash<std::string>()(rel));
+	return util::combine(g_history_root, buf);
+}
+
+void History::set_root(const std::string& root, const std::string& base)
+{
+	g_history_root = root;
+	g_history_base = base;
+}
+
+std::string History::folder_of(const std::string& key)
+{
+	return history_dir(key);
+}
+
+bool History::import_legacy(const std::string& oldkey, const std::string& newkey)
+{
+	std::error_code ec;
+	const fs::path from = fs::u8path(legacy_history_dir(oldkey)), to = fs::u8path(history_dir(newkey));
+	if (!fs::is_directory(from, ec) || from == to)
+		return false;
+	if (fs::is_directory(to, ec) && !fs::is_empty(to, ec))
+		return false;
+	fs::create_directories(to, ec);
+	fs::copy(from, to, fs::copy_options::recursive | fs::copy_options::skip_existing, ec);
+	if (ec)
+		return false;
+	util::write_text(util::combine(to.u8string(), "path.txt"), newkey);
+	return true;
 }
 
 // Snapshots are stored incrementally: <date>_<kind>.txt is a full text, <date>_<kind>.dlt is a line delta against the previous snapshot

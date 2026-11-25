@@ -901,10 +901,29 @@ void App::draw_tree(float width, float height)
 		ImGui::EndChild();
 		return;
 	}
-	{ const std::string head = _project.is_folder ? i18n::fmt(TR("TREE_PROJECT"), _project.name.c_str()) : std::string(TR("TREE_FILE")); ImGui::TextUnformatted(head.c_str()); }
+	{
+		const std::string head = _project.is_folder ? _project.name : std::string(TR("TREE_FILE"));
+		// A long name is cut with an ellipsis so that it does not run under the buttons; the tooltip gives the whole text
+		const float room = _project.is_folder ? width - 148.0f - ImGui::GetStyle().WindowPadding.x - 4.0f : width;
+		std::string shown = head;
+		if (ImGui::CalcTextSize(shown.c_str()).x > room)
+		{
+			while (!shown.empty() && ImGui::CalcTextSize((shown + "\xE2\x80\xA6").c_str()).x > room)
+			{
+				size_t cut = shown.size() - 1;
+				while (cut > 0 && ((unsigned char)shown[cut] & 0xC0) == 0x80)
+					cut--;
+				shown.erase(cut);
+			}
+			shown += "\xE2\x80\xA6";
+		}
+		ImGui::TextUnformatted(shown.c_str());
+		if (shown != head && ImGui::IsItemHovered())
+			ImGui::SetTooltip("%s", head.c_str());
+	}
 	if (_project.is_folder)
 	{
-		ImGui::SameLine(width - 134.0f);
+		ImGui::SameLine(width - 148.0f);						// the buttons keep a margin on the right
 		if (ImGui::SmallButton("\xE2\x8A\x98"))
 			_show_excluded = !_show_excluded;
 		if (ImGui::IsItemHovered())

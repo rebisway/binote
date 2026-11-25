@@ -1804,7 +1804,7 @@ void App::draw_history()
 		ImGui::End();
 		return;
 	}
-	ImGui::BeginChild("##snapshots", ImVec2(330.0f, 0.0f), true);
+	ImGui::BeginChild("##snapshots", ImVec2(ImMin(430.0f, ImGui::GetContentRegionAvail().x * 0.4f), 0.0f), true);
 	if (_snapshots.empty())
 		ImGui::TextWrapped(TR("HISTORY_EMPTY"));
 	for (size_t i = 0; i < _snapshots.size(); i++)
@@ -1823,16 +1823,37 @@ void App::draw_history()
 		_snapshot_diff = diff::lines(History::read(_snapshots[_snapshot_selected]), editor_text(_dst.editor), _snapshot_only_changes);
 	ImGui::SameLine();
 	if (ImGui::Button(TR("HISTORY_RESTORE")) && _snapshot_selected >= 0)
+		history_restart_from(_snapshot_selected);
+	if (ImGui::IsItemHovered())
+		ImGui::SetTooltip("%s", TR("HISTORY_RESTORE_HINT"));
+	// The buttons go to the next row when the window is too narrow for them
+	auto same_line_if_fits = [](const char* next)
 	{
-		const std::string text = History::read(_snapshots[_snapshot_selected]);
-		const int last = ImGuiProse::GetLineCount(_dst.editor);
-		int len = 0;
-		ImGuiProse::GetLine(_dst.editor, last, &len);
-		ImGuiProse::Replace(_dst.editor, ImGuiProsePos(1, 0), ImGuiProsePos(last, len), text.c_str());
-		status(TR("MSG_VERSION_RESTORED"));
-		_show_history = false;
+		const ImGuiStyle& st = ImGui::GetStyle();
+		const float need = ImGui::CalcTextSize(next).x + st.FramePadding.x * 2.0f + st.ItemSpacing.x;
+		if (ImGui::GetContentRegionAvail().x > need)
+			ImGui::SameLine();
+	};
+	same_line_if_fits(TR("HISTORY_EXPORT"));
+	if (ImGui::Button(TR("HISTORY_EXPORT")) && _snapshot_selected >= 0)
+	{
+		Doc* d = current_doc();
+		const std::string label = _snapshots[(size_t)_snapshot_selected].label.substr(0, 19);
+		std::string stamp;
+		for (char c : label)
+			stamp += (c == ' ' || c == ':') ? (c == ' ' ? '_' : '-') : c;
+		const std::string file = util::file_name(d->dst_path);
+		const size_t dot = file.rfind('.');
+		const std::string name = (dot == std::string::npos ? file : file.substr(0, dot)) + "_" + stamp + (dot == std::string::npos ? "" : file.substr(dot));
+		std::string path;
+		if (dialog::save_file_dialog(util::combine(_project.dest_root, name), path, "Texte / Markdown", "*.md;*.markdown;*.txt"))
+		{
+			util::write_text(path, History::read(_snapshots[(size_t)_snapshot_selected]), d->crlf);
+			note_written_file(path);
+			status(TR("MSG_VERSION_EXPORTED"));
+		}
 	}
-	ImGui::SameLine();
+	same_line_if_fits(TR("BTN_DELETE"));
 	if (ImGui::Button(TR("BTN_DELETE")) && _snapshot_selected >= 0)
 	{
 		History::remove(_snapshots[_snapshot_selected]);
@@ -1841,16 +1862,91 @@ void App::draw_history()
 		_snapshot_diff.clear();
 	}
 	ImGui::BeginChild("##diff", ImVec2(0, 0), true);
-	for (const diff::Line& l : _snapshot_diff)
+	int revert = -1, shown_block = -1;
+	for (size_t i = 0; i < _snapshot_diff.size(); i++)
 	{
+		const diff::Line& l = _snapshot_diff[i];
+		// Header of a change: its paragraphs in the chosen version and in the text on screen (they differ when paragraphs were joined or split)
+		if (l.block >= 0 && l.block != shown_block)
+		{
+			shown_block = l.block;
+			int a0 = 0, a1 = 0, b0 = 0, b1 = 0;
+			for (size_t k = i; k < _snapshot_diff.size() && _snapshot_diff[k].block == l.block; k++)
+			{
+				const diff::Line& x = _snapshot_diff[k];
+				if (x.a_no) { if (!a0) a0 = x.a_no; a1 = x.a_no; }
+				if (x.b_no) { if (!b0) b0 = x.b_no; b1 = x.b_no; }
+			}
+			auto range = [](int p, int q) { return !p ? std::string("-") : (p == q ? std::to_string(p) : std::to_string(p) + "-" + std::to_string(q)); };
+			ImGui::TextDisabled("%s %s  /  %s %s", TR("HISTORY_PARAS_CHOSEN"), range(a0, a1).c_str(), TR("HISTORY_PARAS_NOW"), range(b0, b1).c_str());
+			ImGui::SameLine();
+			if (ImGui::SmallButton((std::string(TR("HISTORY_REVERT_CHANGE")) + "##r" + std::to_string(l.block)).c_str()))
+				revert = l.block;
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("%s", TR("HISTORY_REVERT_CHANGE_HINT"));
+		}
 		const ImU32 col = l.sign == '+' ? IM_COL32(60, 200, 100, 255) : (l.sign == '-' ? IM_COL32(230, 90, 90, 255) : ImGui::GetColorU32(ImGuiCol_Text));
 		ImGui::PushStyleColor(ImGuiCol_Text, col);
-		ImGui::TextWrapped("%c %s", l.sign, l.text.c_str());
+		const int no = l.sign == '-' ? l.a_no : l.b_no;
+		if (no)
+			ImGui::TextWrapped("%5d %c %s", no, l.sign, l.text.c_str());
+		else
+			ImGui::TextWrapped("%c %s", l.sign, l.text.c_str());
 		ImGui::PopStyleColor();
 	}
+	if (revert >= 0)
+		history_revert_change(revert);
 	ImGui::EndChild();
 	ImGui::EndGroup();
 	ImGui::End();
+}
+
+void App::history_refresh_diff()
+{
+	if (_snapshot_selected >= 0 && _snapshot_selected < (int)_snapshots.size())
+		_snapshot_diff = diff::lines(History::read(_snapshots[(size_t)_snapshot_selected]), editor_text(_dst.editor), _snapshot_only_changes);
+	else
+		_snapshot_diff.clear();
+}
+
+// Puts a whole text in the work editor as one change (one Ctrl+Z); the text on screen is kept first as a version of the history
+static void replace_all_text(ImGuiProseEditor* editor, const std::string& text)
+{
+	const int last = ImGuiProse::GetLineCount(editor);
+	int len = 0;
+	ImGuiProse::GetLine(editor, last, &len);
+	ImGuiProse::Replace(editor, ImGuiProsePos(1, 0), ImGuiProsePos(last, len), text.c_str());
+}
+
+// Restart from a version: all the text becomes this version. The text on screen stays in the history, nothing is lost.
+void App::history_restart_from(int index)
+{
+	Doc* d = current_doc();
+	if (!d || index < 0 || index >= (int)_snapshots.size())
+		return;
+	const std::string text = History::read(_snapshots[(size_t)index]);
+	History::add(d->dst_path, editor_text(_dst.editor), "auto");
+	replace_all_text(_dst.editor, text);
+	status(TR("MSG_VERSION_RESTORED"));
+	_show_history = false;
+}
+
+// Brings back one change of the chosen version only: its paragraphs return, the rest of the text stays as it is now
+void App::history_revert_change(int block)
+{
+	Doc* d = current_doc();
+	if (!d || _snapshot_selected < 0 || _snapshot_selected >= (int)_snapshots.size())
+		return;
+	const std::string current = editor_text(_dst.editor);
+	const std::string text = diff::revert_block(History::read(_snapshots[(size_t)_snapshot_selected]), current, block);
+	if (text == current)
+		return;
+	History::add(d->dst_path, current, "auto");
+	replace_all_text(_dst.editor, text);
+	_snapshots = History::list(d->dst_path);
+	_snapshot_selected = -1;
+	_snapshot_diff.clear();
+	status(TR("MSG_CHANGE_REVERTED"));
 }
 
 // Table of contents window, to copy or insert

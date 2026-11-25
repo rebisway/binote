@@ -296,6 +296,9 @@ private:
 	int _snapshot_selected = -1;
 	std::vector<diff::Line> _snapshot_diff;
 	bool _snapshot_only_changes = true;
+	void history_refresh_diff();							// the differences of the chosen version against the text on screen
+	void history_restart_from(int index);					// the text becomes the chosen version
+	void history_revert_change(int block);					// only one change of the chosen version comes back, the rest of the text stays
 	bool _show_toc = false;
 	std::string _toc_text;
 	bool _toc_multi = false;

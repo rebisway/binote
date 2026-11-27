@@ -2,7 +2,7 @@
 ; The folder bin\Release must hold a Release build (see docs\BUILD.md).
 
 #define AppName "Binote"
-#define AppVersion "1.2.0"
+#define AppVersion "1.2.1"
 #define AppPublisher "Thomas Gourgnier"
 #define AppURL "https://www.rebisway.com"
 

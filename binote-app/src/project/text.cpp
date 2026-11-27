@@ -502,9 +502,48 @@ namespace diff
 	int map_dst_to_src(const Result& r, int para) { return map_para(r, para, true); }
 	int map_src_to_dst(const Result& r, int para) { return map_para(r, para, false); }
 
+	// For each line, its paragraph number as in the editor: the non blank lines are counted, a blank one has none (0)
+	static std::vector<int> paragraph_of_lines(const std::vector<std::string>& lines)
+	{
+		std::vector<int> v;
+		int n = 0;
+		for (const std::string& l : lines)
+			v.push_back(l.find_first_not_of(" \t\r") == std::string::npos ? 0 : ++n);
+		return v;
+	}
+
+	std::string changed_paragraphs(const std::string& old_text, const std::string& new_text)
+	{
+		const std::vector<std::string> a = util::split_lines(old_text), b = util::split_lines(new_text);
+		const std::vector<int> pa = paragraph_of_lines(a), pb = paragraph_of_lines(b);
+		std::vector<Block> bl;
+		patience(a, b, 0, (int)a.size(), 0, (int)b.size(), bl);
+		std::string out;
+		int shown = 0;
+		bool more = false;
+		for (const Block& x : bl)
+		{
+			int first = 0, last = 0;
+			for (int k = x.b0; k < x.b1; k++)
+				if (pb[k]) { if (!first) first = pb[k]; last = pb[k]; }
+			std::string range;
+			if (first)
+				range = std::to_string(first) + (last > first ? "-" + std::to_string(last) : "");
+			else
+				for (int k = x.a0; k < x.a1 && range.empty(); k++)
+					if (pa[k]) range = std::to_string(pa[k]) + "-";
+			if (range.empty())					// only blank lines changed
+				continue;
+			if (shown == 4) { more = true; break; }
+			out += (shown++ ? ", " : "") + range;
+		}
+		return more ? out + ", ..." : out;
+	}
+
 	std::vector<Line> lines(const std::string& old_text, const std::string& new_text, bool only_changes)
 	{
 		const std::vector<std::string> a = util::split_lines(old_text), b = util::split_lines(new_text);
+		const std::vector<int> pa = paragraph_of_lines(a), pb = paragraph_of_lines(b);
 		std::vector<Block> blocks;
 		patience(a, b, 0, (int)a.size(), 0, (int)b.size(), blocks);
 		std::vector<Line> out;
@@ -513,17 +552,17 @@ namespace diff
 		{
 			if (!only_changes)
 				for (; ia < bl.a0; ia++, ib++)
-					out.push_back({ ' ', a[ia], ia + 1, ib + 1, -1 });
+					out.push_back({ ' ', a[ia], pa[ia], pb[ib], -1 });
 			ia = bl.a0;
-			for (int k = bl.a0; k < bl.a1; k++) out.push_back({ '-', a[k], k + 1, 0, index });
-			for (int k = bl.b0; k < bl.b1; k++) out.push_back({ '+', b[k], 0, k + 1, index });
+			for (int k = bl.a0; k < bl.a1; k++) out.push_back({ '-', a[k], pa[k], 0, index });
+			for (int k = bl.b0; k < bl.b1; k++) out.push_back({ '+', b[k], 0, pb[k], index });
 			ia = bl.a1;
 			ib = bl.b1;
 			index++;
 		}
 		if (!only_changes)
 			for (; ia < (int)a.size(); ia++, ib++)
-				out.push_back({ ' ', a[ia], ia + 1, ib + 1, -1 });
+				out.push_back({ ' ', a[ia], pa[ia], pb[ib], -1 });
 		return out;
 	}
 
@@ -759,42 +798,11 @@ static std::string apply_delta(const std::string& old_text, const std::string& d
 	return out;
 }
 
-// The paragraphs a delta changes, numbered in the version it gives: "12-14, 30" (a removal alone shows as "12-")
-static std::string delta_paragraphs(const std::string& delta)
+// The files kept beside the versions (changed paragraphs; ".par" held line numbers and is not read any more)
+static bool is_side_file(const std::string& name)
 {
-	std::string out;
-	size_t pos = delta.find('\n');
-	pos = (pos == std::string::npos) ? delta.size() : pos + 1;
-	int shift = 0, shown = 0, total = 0;
-	while (pos < delta.size())
-	{
-		size_t e = delta.find('\n', pos);
-		if (e == std::string::npos) break;
-		int a0 = 0, a1 = 0, n = 0;
-		sscanf(delta.c_str() + pos + 1, "%d %d %d", &a0, &a1, &n);
-		pos = e + 1;
-		for (int k = 0; k < n && pos < delta.size(); k++)
-		{
-			e = delta.find('\n', pos);
-			pos = (e == std::string::npos) ? delta.size() : e + 1;
-		}
-		const int first = a0 + shift + 1;
-		shift += n - (a1 - a0);
-		total++;
-		if (shown < 4)
-		{
-			if (shown++)
-				out += ", ";
-			out += std::to_string(first);
-			if (n == 0)
-				out += "-";
-			else if (n > 1)
-				out += "-" + std::to_string(first + n - 1);
-		}
-	}
-	if (total > shown)
-		out += ", ...";
-	return out;
+	const size_t dot = name.rfind('.');
+	return dot != std::string::npos && (name.substr(dot) == ".par" || name.substr(dot) == ".para");
 }
 
 static bool is_delta(const std::string& path) { return path.size() > 4 && path.compare(path.size() - 4, 4, ".dlt") == 0; }
@@ -837,9 +845,9 @@ bool History::add(const std::string& key, const std::string& text, const char* k
 	const bool as_delta = !all.empty() && deltas < KeyEvery - 1 && delta.size() < text.size() / 2;
 	if (!util::write_text(util::combine(dir, std::string(name) + (as_delta ? ".dlt" : ".txt")), as_delta ? delta : text))
 		return false;
-	// The changed paragraphs are kept beside the version (also when it is stored in full), to show them in the list
+	// The changed paragraphs are kept beside the version, to show them in the list
 	if (!all.empty())
-		util::write_text(util::combine(dir, std::string(name) + ".par"), delta_paragraphs(make_delta(previous, text)));
+		util::write_text(util::combine(dir, std::string(name) + ".para"), diff::changed_paragraphs(previous, text));
 	all = list(key);
 	for (size_t i = 300; i < all.size(); i++)
 		remove(all[i]);
@@ -856,7 +864,7 @@ std::vector<History::Snapshot> History::list(const std::string& key)
 	{
 		const std::string name = e.path().filename().u8string();
 		const size_t us = name.find('_');
-		if (us != 19 || name.size() < 24 || name == "path.txt" || name.compare(name.size() - 4, 4, ".par") == 0)
+		if (us != 19 || name.size() < 24 || name == "path.txt" || is_side_file(name))
 			continue;
 		Snapshot s;
 		s.path = e.path().u8string();
@@ -867,20 +875,28 @@ std::vector<History::Snapshot> History::list(const std::string& key)
 			util::read_text(s.path, d);
 			if (d.size() > 1 && d[0] == '#')
 				s.size = atoll(d.c_str() + 1);
-			s.paras = delta_paragraphs(d);
 		}
-		else
-			util::read_text(s.path.substr(0, s.path.size() - 4) + ".par", s.paras);
 		std::string kind = name.substr(us + 1);
 		kind = kind.substr(0, kind.size() - 4);
 		const char* kind_key = kind == "save" ? "HISTORY_KIND_SAVE" : kind == "auto" ? "HISTORY_KIND_AUTO" : (kind == "manual" || kind == "manuel") ? "HISTORY_KIND_MANUAL"
 			: kind == "replace" ? "HISTORY_KIND_REPLACE" : kind == "script" ? "HISTORY_KIND_SCRIPT" : nullptr;
 		s.label = name.substr(0, 4) + "-" + name.substr(4, 2) + "-" + name.substr(6, 2) + " " + name.substr(9, 2) + ":" + name.substr(11, 2) + ":" + name.substr(13, 2)
-			+ "  -  " + (kind_key ? std::string(TR(kind_key)) : kind) + "  -  " + std::to_string((s.size + 512) / 1024) + " " + TR("HISTORY_KB")
-				+ (s.paras.empty() ? std::string() : "  -  " + std::string(TR("HISTORY_PARAS")) + " " + s.paras);
+			+ "  -  " + (kind_key ? std::string(TR(kind_key)) : kind) + "  -  " + std::to_string((s.size + 512) / 1024) + " " + TR("HISTORY_KB");
 		all.push_back(s);
 	}
 	std::sort(all.begin(), all.end(), [](const Snapshot& x, const Snapshot& y) { return fs::u8path(x.path).filename().u8string() > fs::u8path(y.path).filename().u8string(); });
+	// The changed paragraphs of each version against the one before; computed once for the versions which do not have them yet
+	for (size_t i = 0; i + 1 < all.size(); i++)
+	{
+		const std::string cache = all[i].path.substr(0, all[i].path.size() - 4) + ".para";
+		if (!util::read_text(cache, all[i].paras))
+		{
+			all[i].paras = diff::changed_paragraphs(read(all[i + 1]), read(all[i]));
+			util::write_text(cache, all[i].paras);
+		}
+		if (!all[i].paras.empty())
+			all[i].label += "  -  " + std::string(TR("HISTORY_PARAS")) + " " + all[i].paras;
+	}
 	return all;
 }
 
@@ -893,7 +909,7 @@ static std::vector<History::Snapshot> list_beside(const History::Snapshot& s)
 	for (const auto& e : fs::directory_iterator(dir, ec))
 	{
 		const std::string name = e.path().filename().u8string();
-		if (name.find('_') != 19 || name.size() < 24 || name == "path.txt" || name.compare(name.size() - 4, 4, ".par") == 0)
+		if (name.find('_') != 19 || name.size() < 24 || name == "path.txt" || is_side_file(name))
 			continue;
 		History::Snapshot x;
 		x.path = e.path().u8string();
@@ -949,6 +965,10 @@ void History::remove(const Snapshot& s)
 			break;
 		}
 	std::error_code ec;
+	for (size_t i = 1; i < all.size(); i++)
+		if (all[i].path == s.path)
+			fs::remove(fs::u8path(all[i - 1].path.substr(0, all[i - 1].path.size() - 4) + ".para"), ec);
 	fs::remove(fs::u8path(s.path), ec);
 	fs::remove(fs::u8path(s.path.substr(0, s.path.size() - 4) + ".par"), ec);
+	fs::remove(fs::u8path(s.path.substr(0, s.path.size() - 4) + ".para"), ec);
 }

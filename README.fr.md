@@ -2,38 +2,21 @@
 
 *English version: [README.md](README.md).*
 
-**Binote est un éditeur de bureau pour réécrire, réviser et relire un texte, paragraphe par paragraphe.** L'original reste à gauche, en lecture seule ; votre version est à droite. Binote garde les deux alignés, montre ce qui a changé et vous aide à soigner le résultat : correcteurs orthographique et grammatical, typographie française, analyse de style, scripts Python, historique de chaque version et export.
+**Binote est un éditeur de bureau pour rédiger et réécrire un texte en double vue, avec correction orthographique, grammaticale et de style et suivi des versions.**
+
+**[Télécharger la dernière version](https://github.com/rebisway/binote/releases/latest)** (Windows, installateur ou zip).
 
 Texte brut ou Markdown, un seul fichier ou un livre entier (un fichier par chapitre). Tout se passe sur votre ordinateur : pas de compte, pas d'envoi de texte, pas de modèle d'IA.
 
 ![Binote, thème clair](docs/images/main-light.png)
 
-## Objectif
+## Trois points forts
 
-Binote sert à réécrire un texte paragraphe par paragraphe en gardant l'original sous les yeux : reprendre un brouillon, polir une traduction, réviser un livre chapitre par chapitre. Il sert aussi d'éditeur ordinaire, en simple vue, pour écrire, relire ou lire un texte seul.
+- **L'original reste sous les yeux.** Votre texte à droite, l'original à gauche, les paragraphes face à face et les différences colorées. La simple vue permet d'écrire sans lui.
+- **Chaque version est gardée.** Chaque enregistrement va dans un historique : rétablir une seule modification, repartir d'une version ou l'exporter. Vous travaillez dans vos propres fichiers, que Git et Subversion suivent donc.
+- **La correction pendant la rédaction.** Orthographe, grammaire, analyse de style et typographie automatique, le tout sur votre ordinateur.
 
-## Fonctions
-
-**Vues et navigation**
-- **Double vue ou simple vue** (la liste déroulante de la barre d'outils) : *Original*, *Travail* ou les deux. En double vue, les paragraphes restent face à face même quand vous en ajoutez ou en retirez ; les deux volets défilent ensemble.
-- **Projets** : un fichier seul, ou un dossier de chapitres avec un plan en arbre (`binote.json`) ; numéros de lignes et de paragraphes, paragraphe courant surligné, aller à une ligne, sommaire.
-- **Aperçu Markdown** avec images et diagrammes ; les **liens** sont suivis (un fichier Markdown s'ouvre dans Binote, une adresse web ouvre le navigateur).
-- Thèmes clair et sombre, interface en anglais, en français et en espagnol.
-- **Texte chinois, japonais et coréen** : une police de secours (trouvée sur le système, ou choisie dans les préférences), les règles de coupure de ligne de l'écriture est-asiatique (kinsoku) et la position du curseur transmise à la méthode de saisie.
-
-**Correction et typographie**
-- **Orthographe** (Hunspell) et **grammaire** : un moteur Python de règles indépendantes, un fichier par langue, avec un étiqueteur et un lexique pour le français, l'anglais et l'espagnol (les variantes comme l'espagnol argentin dérivent de leur langue). Les fautes sont soulignées et listées avec leurs numéros de ligne. Le moteur est un [composant séparé](grammar-engine).
-- **Analyse de style** : répétitions, formules toutes faites, régularité des phrases, vocabulaire, lisibilité… des observations avec les passages colorés dans le texte, et des conseils. Une indication, jamais un verdict.
-- **Typographie française** pendant la frappe (« », espaces insécables, ’ et …) ou à la demande pour un paragraphe ou un chapitre.
-- **Caractères invisibles** affichés avec une couleur par type (espaces insécables, fines et de largeur nulle, trait d'union conditionnel…), et un tableau des caractères.
-
-**Outils de travail**
-- **Recherche et remplacement** avec expressions régulières et séquences d'échappement, dans le fichier ou dans tous les chapitres.
-- **Scripts Python** applicables à la sélection, à un paragraphe, à une section, à un fichier ou au projet, avec une boîte de dialogue, un éditeur et un aperçu ; des scripts livrés pour les guillemets, les majuscules des titres, les listes, les espaces insécables…
-- **Notes** sur les paragraphes, **noms propres** relevés dans le projet, **statistiques** et **objectifs** en mots.
-- **Historique** de chaque version enregistrée, avec les différences et la restauration.
-- **Git et Subversion** (état, commit, mise à jour, push, journal, différences).
-- **Export** en PDF, Word, EPUB 3, HTML ou en un seul fichier Markdown, sans bibliothèque externe.
+Binote propose aussi des boutons et un aperçu Markdown, la recherche et le remplacement avec expressions régulières, des scripts Python, des notes et des statistiques, l'export en PDF, Word, EPUB, HTML, Markdown et texte brut, et gère le chinois, le japonais et le coréen. Le [manuel](docs/MANUAL.md) (en anglais) décrit tout.
 
 <p>
 <img src="docs/images/problems.png" width="49%" alt="Problèmes d'orthographe et de grammaire">
@@ -49,9 +32,9 @@ Texte japonais et chinois, en double vue (les premières lignes de *Je suis un c
 
 ## Pour commencer
 
-1. Compilez Binote (ci-dessous) et lancez `binote.exe`.
-2. **Fichier > Ouvrir un fichier** (un `.md` ou un `.txt`) ou **Ouvrir un dossier** (un fichier par chapitre). La première fois, Binote demande où écrire votre version et crée un `binote.json`.
-3. Écrivez dans le volet de droite. La liste déroulante de la barre d'outils choisit la vue ; **Ctrl+F7** et **Ctrl+F8** activent l'orthographe et la grammaire ; **F7** corrige la typographie du paragraphe.
+1. [Téléchargez la dernière version](https://github.com/rebisway/binote/releases/latest), installez-la ou décompressez-la, et lancez `binote.exe` (l'installateur n'est pas signé : Windows SmartScreen peut demander une confirmation). Python 3.12 ou plus récent est facultatif, pour les scripts et le correcteur grammatical complet. Pour compiler vous-même, voir la section de compilation plus bas.
+2. **Fichier > Ouvrir un fichier** (un `.md` ou un `.txt`) ou **Ouvrir un dossier** (un fichier par chapitre). Vous travaillez dans ces fichiers ; Binote garde une copie des originaux, son fichier de projet et l'historique dans un dossier caché `.src`. **Fichier > Nouveau fichier** (Ctrl+N) part d'une page blanche.
+3. Écrivez dans le volet *Travail*. La liste déroulante de la barre d'outils choisit la vue ; **Ctrl+F7** et **Ctrl+F8** activent l'orthographe et la grammaire ; **F7** corrige la typographie du paragraphe.
 
 Un projet d'exemple (les premiers chapitres d'*Alice au pays des merveilles*, en anglais, et une courte réécriture) est dans [`docs/sample`](docs/sample) ; voir [`docs/SAMPLE_CREDITS.txt`](docs/SAMPLE_CREDITS.txt).
 

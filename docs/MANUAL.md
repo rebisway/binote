@@ -1,22 +1,23 @@
 # Binote user manual
 
-Binote is made to rewrite a text paragraph by paragraph, in a **dual view** (the original beside your text). It is just as much a **single-view editor**: write, proofread or read one text on its own, with the spelling and grammar checkers, the style analysis, the French typography, the search, the scripts, the history and the export. See [Single view or dual view](#single-view-or-dual-view). This manual follows the order of a work session. The screenshots show the sample project in [`sample`](sample): the first chapters of *Alice's Adventures in Wonderland* (Lewis Carroll, public domain) and a short rewrite.
+Binote is made to write a text, with spelling, grammar and style checking, typography, version tracking and rewriting in a **dual view** (the original beside your text). In a **single view** you write, proofread or read one text on its own, with the checkers, the search, the scripts, the history and the export. See [Single view or dual view](#single-view-or-dual-view). This manual follows the order of a work session. The screenshots show the sample project in [`sample`](sample): the first chapters of *Alice's Adventures in Wonderland* (Lewis Carroll, public domain) and a short rewrite.
 
 - [The window](#the-window)
 - [Single view or dual view](#single-view-or-dual-view)
 - [The toolbar and the menus](#the-toolbar-and-the-menus)
 - [Opening a text](#opening-a-text)
-- [Rewriting](#rewriting)
-- [Find and replace](#find-and-replace)
+- [Writing](#writing)
 - [Spelling and grammar](#spelling-and-grammar)
 - [Style analysis](#style-analysis)
+- [Version tracking](#version-tracking)
+- [Rewriting in the dual view](#rewriting-in-the-dual-view)
+- [Find and replace](#find-and-replace)
 - [Python scripts](#python-scripts)
-- [History, notes, names, statistics](#history-notes-names-statistics)
-- [Versions (Git and Subversion)](#versions-git-and-subversion)
+- [Notes, names, statistics](#notes-names-statistics)
 - [Export](#export)
 - [Display and preferences](#display-and-preferences)
-- [Keyboard shortcuts](#keyboard-shortcuts)
 - [Chinese, Japanese and Korean text](#chinese-japanese-and-korean-text)
+- [Keyboard shortcuts](#keyboard-shortcuts)
 - [Command line](#command-line)
 - [Files written by Binote](#files-written-by-binote)
 
@@ -28,7 +29,7 @@ Binote is made to rewrite a text paragraph by paragraph, in a **dual view** (the
 - **Middle**: the **original**, the text you start from, read-only. Its title bar is blue.
 - **Right**: the **work**, where you write. Its title bar is green.
 - The two columns of numbers are the **line numbers** (grey) and the **paragraph numbers** (orange). A paragraph is a line which is not blank.
-- The colours show the differences with the source: yellow, a paragraph which changed; green and red, the words added and removed; a hatched area, a paragraph which exists only on the other side. The panes scroll together and the paragraphs stay facing each other.
+- The colours show the differences with the original: yellow, a paragraph which changed; green and red, the words added and removed; a hatched area, a paragraph which exists only on the other side. The panes scroll together and the paragraphs stay facing each other.
 - The combo box of the toolbar chooses what is shown: **Original** (the original alone), **Work** (your text alone) or **Dual view** (both).
 - The **status bar** gives the position, the words (of the selection, otherwise of the file), the objective if there is one, and the number of differences. At its right end are the **language of the text** (a click changes it) and two switches: **Ab** for the spelling (red when on) and **Gr** for the grammar (blue when on).
 
@@ -38,13 +39,13 @@ Dark theme (**Ctrl+T**):
 
 ## Single view or dual view
 
-The combo box of the toolbar (and the **View** menu: *Reading: original only*, *Destination only*) chooses what the window shows:
+The combo box of the toolbar (and the **View** menu: *Reading: original only*, *Work only*) chooses what the window shows:
 
 | Choice | What you see | Use it to |
 | --- | --- | --- |
-| **Dual view** | the original on the left, your text on the right, paragraphs facing each other, differences coloured | rewrite, translate, revise a text against its source |
-| **Work** | your text alone, full width | write or proofread a text without a source: a new text, a chapter you are rewriting from memory, a text you have already finished comparing |
-| **Original** | the original alone, read-only (tick *Edit* to correct it in place) | read the source, or use Binote as a reader with the outline, the search and the preview |
+| **Dual view** | the original on the left, your text on the right, paragraphs facing each other, differences coloured | rewrite, translate, revise a text against its original |
+| **Work** | your text alone, full width | write or proofread a text without an original: a new text, a chapter you are rewriting from memory, a text you have already finished comparing |
+| **Original** | the original alone, read-only (tick *Edit* to correct it in place) | read the original, or use Binote as a reader with the outline, the search and the preview |
 
 Everything else works in any of the three: the outline and the chapters, the line and paragraph numbers, find and replace, the spelling and grammar checkers and their list of problems, the style analysis, the French typography, the notes, the scripts, the history, the statistics and objectives, the version control and the export. Only the differences and the alignment of paragraphs belong to the dual view.
 
@@ -58,12 +59,13 @@ From left to right (each button shows its name when the mouse stays on it):
 
 | Button | Does |
 | --- | --- |
-| Open, Folder, Save | open a file, open a folder of chapters, save the work (Ctrl+O, Ctrl+Shift+O, Ctrl+S) |
+| New, Open, Folder, Save | create a file, open a file, open a folder of chapters, save the work (Ctrl+N, Ctrl+O, Ctrl+Shift+O, Ctrl+S) |
 | Wrap, Line no., No. ¶ | word wrap, line numbers, paragraph numbers |
 | Differences, Sync | colour the differences with the original; scroll both panes together |
 | Tree | show or hide the project tree (F9) |
 | View mode (combo box) | *Original*, *Work* or *Dual view* |
 | Dark | light or dark theme (Ctrl+T) |
+| Markdown buttons | bold, italic, headings, lists, quote, link, code (Markdown texts; on a second row when the window is narrow) |
 | Chapter (combo box) | the heading where the caret is; choose another one to go there |
 | Go to... | go to a line or a paragraph (Ctrl+G) |
 | Contents | the table of contents of the project |
@@ -73,9 +75,9 @@ From left to right (each button shows its name when the mouse stays on it):
 
 | Menu | Items |
 | --- | --- |
-| **File** | Open a file, Open a folder, Recent files (and *Clear the list*), Save the destination, Versions (Git / SVN), Export, Save the destination as, Merge files, Reset the chapter from the source, Preferences, Destination folder, Quit |
-| **Edit** | Undo, Redo; Find, Next match, Find in all chapters, Go to line / paragraph, Next / Previous paragraph, Next / Previous difference; Character map, Align with a paragraph of the other pane, Remove the alignments of the file, Note on the paragraph, List of the notes; Insert a no-break space, a narrow no-break space, guillemets « » |
-| **View** | Word wrap, Line numbers, Paragraph numbers, Mark the differences, Synchronize source / destination, Align the paragraphs, Show no-break spaces, Show invisible characters; Project tree, Reading: original only, Destination only, Log, Open the log folder, Dark theme, Monospaced font in the editors; Current paragraph highlight, Highlight color, Language, Zoom in, Zoom out |
+| **File** | New file, Open a file, Open a folder, Recent files (and *Clear the list*), Save, Versions (Git / SVN), Export, Save as, Merge files, Reset the chapter from the original, Preferences, Project data, Quit |
+| **Edit** | Undo, Redo; Find, Next match, Find in all chapters, Go to line / paragraph, Next / Previous paragraph, Next / Previous difference; Character map, Align with a paragraph of the other pane, Remove the alignments of the file, Note on the paragraph, List of the notes, Markdown; Insert a no-break space, a narrow no-break space, guillemets « » |
+| **View** | Word wrap, Line numbers, Paragraph numbers, Mark the differences, Synchronize original / work, Align the paragraphs, Show no-break spaces, Show invisible characters; Markdown bar, Project tree, Reading: original only, Work only, Log, Open the log folder, Dark theme, Monospaced font in the editors; Current paragraph highlight, Highlight color, Language, Zoom in, Zoom out |
 | **Tools** | Statistics, Style analysis, Generate the table of contents, Proper names of the project, Change history, Add a version to the history; Language of the project text, Grammar checker, List of the problems, Switch the ignored rules on again, Spell checker, Automatic typography while typing, Fix the typography of the paragraph / of the chapter; Save when changing chapter |
 | **Scripts** | the scripts by category, Edit the scripts, Refresh the list, Open the scripts folder |
 | **Help** | About Binote (the version, the licence, the components, the Python which was found) |
@@ -84,13 +86,13 @@ The shortcuts are in [Keyboard shortcuts](#keyboard-shortcuts).
 
 ## Opening a text
 
-- **File > New file** (Ctrl+N, or the **+** button): a save dialog names the file, which is created empty and opened. In the folder of the open project it is a new chapter, listed after the others. **Edit > Markdown** and the **row of buttons under the toolbar** (shown for Markdown texts, hidden with **View > Markdown bar**) write the basic codes: **B**old (Ctrl+B), **I**talic (Ctrl+I), **S**trikethrough, `code`, headings 1 to 4 (**H**), bulleted, numbered and task lists, quote, link (Ctrl+K), code block and horizontal rule. They act on the selection (or on the word at the caret, or on the lines of the selection for the headings, lists and quote); the same button again takes the marks off. Each action is one step of the undo.
+- **File > New file** (Ctrl+N, or the **+** button): a save dialog names the file, which is created empty and opened. In the folder of the open project it is a new chapter, listed after the others.
 - **File > Open a file** (Ctrl+O): a `.md`, `.markdown` or `.txt` file. **You work in the file itself**, so that Git or SVN follow it. A copy of the file is kept in the hidden folder `.src` beside it: it is the **Original** view. **File > Recent files** lists the last ones.
 - **File > Open a folder** (Ctrl+Shift+O): a multi-chapter project, one file per chapter. **You work in the files of the folder**; the first time, Binote creates the hidden folder `.src`, with a copy of each chapter (the **Original** view), the file `binote.json`, the notes and the history of the changes. The chapters can be reordered by dragging them in the tree, or with its arrows.
   - A project made with an older version (the work in a `dst` folder) is **migrated** after a question: the originals go to `.src`, the work replaces the files of the folder, `binote.json`, the notes and the history move to `.src`, and the old `dst` folder is kept in `.src`. Nothing is deleted.
   - In the tree, a small tag at the right of a chapter is **orange** when it was changed and not saved, **green** when it is saved and different from the original.
 - A file given by the system (double click, *Open with*) opens as chosen in the preferences: reading, preview or normal editing.
-- **File > Merge files** writes all the chapters in one file. **File > Save the destination as** saves a copy of a single file under another name. **File > Project data** exports the data of the project (the contents of `.src`) to a ZIP archive, imports an archive made so, or **deletes** them after a confirmation (your files are not touched). A file written in the folder of the project by an export, a merge or the table of contents is not taken for a chapter.
+- **File > Merge files** writes all the chapters in one file. **File > Save as** saves a copy of a single file under another name. **File > Project data** exports the data of the project (the contents of `.src`) to a ZIP archive, imports an archive made so, or **deletes** them after a confirmation (your files are not touched). A file written in the folder of the project by an export, a merge or the table of contents is not taken for a chapter.
 - **Tools > Save when changing chapter** saves the work by itself when you go to another chapter (otherwise Binote asks).
 - The language of the text (dictionary, typography, grammar) is set in **Tools > Language of the project text**, or with the language button at the right of the status bar. It is not the language of the interface (**View > Language**).
 
@@ -98,12 +100,12 @@ The shortcuts are in [Keyboard shortcuts](#keyboard-shortcuts).
 
   Languages with several countries are submenus, named by country. **Other dictionaries** lists the ones of LibreOffice and of the system.
 
-## Rewriting
+## Writing
 
-Type in the work. The original cannot be modified, except in the *Original* view (see below).
+Type in the work: it is your file. A new text starts with **File > New file**; the *Work* view gives it the whole window.
 
-- **Go to** (Ctrl+G, **Edit** menu) a line or a paragraph. **Ctrl+Down / Ctrl+Up** move to the next and previous paragraph. **F8 / Shift+F8** jump to the next and previous difference.
-- **Reset the chapter from the source** starts the rewrite again.
+- **Edit > Markdown** and the **row of buttons under the toolbar** (shown for Markdown texts, hidden with **View > Markdown bar**) write the basic codes: **B**old (Ctrl+B), **I**talic (Ctrl+I), **S**trikethrough, `code`, headings 1 to 4 (**H**), bulleted, numbered and task lists, quote, link (Ctrl+K), code block and horizontal rule. They act on the selection (or on the word at the caret, or on the lines of the selection for the headings, lists and quote); the same button again takes the marks off. Each action is one step of the undo.
+- **Go to** (Ctrl+G, **Edit** menu) a line or a paragraph. **Ctrl+Down / Ctrl+Up** move to the next and previous paragraph.
 - **Automatic typography** (**Tools** menu): while typing, quotes become « », the no-break spaces are added before `; : ! ?`, `'` becomes ’ and `...` becomes … (rules of the French profile). Each language has a **profile** (`typography` folder beside the program; yours go in `%AppData%\Binote\typography`, see [typography-engine](../typography-engine/README.md)); a language without a profile only has the curly quotes. **F7** corrects the current paragraph, **Shift+F7** the whole chapter. The opposite exists in the **Tools** menu (**Plain quotes and spaces** in the paragraph or the chapter): every quotation mark becomes `"`, every apostrophe `'`, the ellipsis three dots, and the typographic spaces before the signs and inside the quotation marks are removed (useful before an export to a tool which does not like them). The key used for the double quote is chosen in the preferences; **Edit > Insert guillemets « »** inserts a pair around the selection.
   Profiles shipped with Binote:
 
@@ -135,8 +137,6 @@ Type in the work. The original cannot be modified, except in the *Original* view
   | red | direction marks, line and paragraph separators, tab |
 
   Use it to find a space which looks right but is not the one you want (a no-break space where a normal one is needed, a zero-width character pasted from a web page). The colours can be changed in **Preferences > Colours**.
-- **Align with a paragraph of the other pane** (Ctrl+Alt+A): when the program cannot tell which paragraph faces which, declare it. The alignments are kept in `binote.align`; **Edit > Remove the alignments of the file** forgets them. **View > Align the paragraphs** adds empty lines, which cannot be edited, where a paragraph exists on one side only, so that the paragraphs stay facing each other.
-- **Original view** (Ctrl+R, or the combo box) shows the original alone. Its **Edit** check box allows correcting it in place. **Work** hides the original.
 - **Preview**: the *Preview* check box of a pane shows the rendered Markdown, with images and diagrams. *Edit* goes back.
 
 ![Markdown preview](images/preview.png)
@@ -159,23 +159,13 @@ A relative address is looked for beside the file of the pane, then beside the ot
 
 ### Table of contents
 
-The **Contents** button of the toolbar (or **Tools > Generate the table of contents**) builds the list of the headings of the project, with the chapters when there are several. In the window: **Copy** puts it in the clipboard, **Insert in the destination (caret)** writes it in the text, and, for a project of several chapters, **Write SOMMAIRE.md in the destination** writes it in a file of the destination folder.
+The **Contents** button of the toolbar (or **Tools > Generate the table of contents**) builds the list of the headings of the project, with the chapters when there are several. In the window: **Copy** puts it in the clipboard, **Insert in the work (caret)** writes it in the text, and, for a project of several chapters, **Write SOMMAIRE.md in the project folder** writes it in a file.
 
 ### Character map
 
-**Edit > Character map** (Ctrl+Shift+U): spaces and invisible characters, punctuation, letters, symbols, by group. A click inserts the character at the caret of the destination, or in the find box if it has the focus. The box *U+00A0* takes the code of any character (*Insert the code*), the recent characters are kept, and the list can be shown with any font of the system (the glyphs which the font lacks are dimmed).
+**Edit > Character map** (Ctrl+Shift+U): spaces and invisible characters, punctuation, letters, symbols, by group. A click inserts the character at the caret of the work, or in the find box if it has the focus. The box *U+00A0* takes the code of any character (*Insert the code*), the recent characters are kept, and the list can be shown with any font of the system (the glyphs which the font lacks are dimmed).
 
 ![Character map](images/character-map.png)
-
-## Find and replace
-
-**Ctrl+F** opens the search window; **F3** and **Shift+F3** go to the next and previous match. The search is made in the pane which has the focus (the window tells which, and how many matches there are). **Ctrl+Shift+F** (or the *All chapters* box) searches all the chapters and lists the results.
-
-![Find and replace](images/find-replace.png)
-
-- **Case**, **Regex** (regular expressions; `$1` in the replacement is the first group) and **Whole word**.
-- Escapes work in the two boxes: `\t`, `\n`, ` `, `\xHH`. The **Special characters** button inserts the invisible ones (no-break spaces, zero-width characters...) by name.
-- **Replace all** is one step which Ctrl+Z undoes. **Replace in project** rewrites every chapter and keeps a version of each in the history.
 
 ## Spelling and grammar
 
@@ -186,7 +176,7 @@ The **Contents** button of the toolbar (or **Tools > Generate the table of conte
 
 ![Spelling and grammar problems](images/problems.png)
 
-The list gives, for each problem, the line, the type, the text, the proposed correction and the explanation. A click selects the passage in the destination. It is updated a moment after each change.
+The list gives, for each problem, the line, the type, the text, the proposed correction and the explanation. A click selects the passage in the work. It is updated a moment after each change.
 
 Binote ships the dictionaries of French, English (US, UK), Spanish (Spain, Argentina), German, Italian, Portuguese (Brazil, Portugal), Polish, Czech and Russian (`dict` folder, downloaded when Binote is built, licenses in [`binote-app/dict`](../binote-app/dict/README_dictionaries.md)). Others go in `dict` of the data folder of the user (`%AppData%\Binote\dict`); those of LibreOffice and of the system are found too, and listed apart under **Other dictionaries** in the language menu.
 
@@ -214,6 +204,48 @@ A **variant** of a language only holds what differs: `es_ar.py` (Argentine Spani
 - **Colors** marks the passages in the work (or the original): stock phrases, connectors, close repetitions, repeated sequences, identical sentence openings, long sentences, redundant paragraphs, constructions, parallel structures, breaks of style. The stronger the colour, the more it weighs.
 - **Advice** says what to change; **Measures** lists the figures: sentence length and its regularity, vocabulary diversity, hapax, entropy, readability, passive voice...
 - Two more pages compare the original with the work (*Analyze both texts*: indication, words, length and regularity of the sentences, vocabulary diversity, connectors and stock phrases per 1000 words, long sentences, words which the previous word lets you guess) and show the **evolution of the indication** over the saved versions (*Analyze the history of the file*).
+
+## Version tracking
+
+### History
+
+Each save keeps a version of the work, in `.src/history`, as the differences with the previous version (a whole text only from time to time), so that it stays small (**Tools > Add a version to the history** adds one by hand, and a preference saves one automatically every 90 seconds).
+
+**Tools > Change history** (Ctrl+H, or the last button of the toolbar) lists the versions, with the numbers of the paragraphs each one changed (`§ 5, 7-9`). A click shows the differences between the chosen version (red) and the current text (green); *Differences only* keeps only what differs. Each difference has a header with its paragraph numbers in the chosen version and in the current text (they differ when paragraphs were added, removed or joined).
+
+- **Restore only this change** (on each difference): those paragraphs go back to the chosen version, the rest of the text stays as it is.
+- **Restart from this version**: the whole text becomes this version.
+- **Export this version...**: writes it in a file, without changing your text.
+- **Delete** removes the version from the history.
+
+Before a restore, the current text is kept in the history; Ctrl+Z undoes it too.
+
+![Change history](images/history.png)
+
+### Git and Subversion
+
+**File > Versions (Git / SVN)** detects a Git or Subversion working folder (the commands `git` or `svn` must be installed) and shows its branch and the changed files. The buttons: *Refresh*; *Update (pull / update)*; *Push*; *History of the file* and *Differences of the file* for the chapter which is open (*Update* saves the work first and reloads the chapter afterwards); and, below, a *Revision message* with *Commit*. A folder without a repository can be initialized with *Create a Git repository here*.
+
+The files of your project are the work, so they are what the window lists and commits. The hidden folder `.src` (the originals, `binote.json`, the notes, the history) is Binote's own data: it is **not listed and not committed**, unless you tick *Include the project data (.src) in the commits*. With Subversion, a new folder is added without its `.src`. After an *Update*, the list of the chapters is read again (new files appear) and the chapter on screen is loaded again; the originals stay as they were, so the chapters changed by the update get the green tag of the tree, and *Use the work as the original* (right click in the tree) takes the new version as the base.
+
+## Rewriting in the dual view
+
+Choose *Dual view*: the original is on the left, your text on the right. The original cannot be modified, except in the *Original* view (see below).
+
+- The differences are coloured; **F8 / Shift+F8** jump to the next and previous one.
+- **Reset the chapter from the original** starts the rewriting again.
+- **Align with a paragraph of the other pane** (Ctrl+Alt+A): when the program cannot tell which paragraph faces which, declare it. The alignments are kept in `binote.align`; **Edit > Remove the alignments of the file** forgets them. **View > Align the paragraphs** adds empty lines, which cannot be edited, where a paragraph exists on one side only, so that the paragraphs stay facing each other.
+- **Original view** (Ctrl+R, or the combo box) shows the original alone. Its **Edit** check box allows correcting it in place. **Work** hides the original.
+
+## Find and replace
+
+**Ctrl+F** opens the search window; **F3** and **Shift+F3** go to the next and previous match. The search is made in the pane which has the focus (the window tells which, and how many matches there are). **Ctrl+Shift+F** (or the *All chapters* box) searches all the chapters and lists the results.
+
+![Find and replace](images/find-replace.png)
+
+- **Case**, **Regex** (regular expressions; `$1` in the replacement is the first group) and **Whole word**.
+- Escapes work in the two boxes: `\t`, `\n`, ` `, `\xHH`. The **Special characters** button inserts the invisible ones (no-break spaces, zero-width characters...) by name.
+- **Replace all** is one step which Ctrl+Z undoes. **Replace in project** rewrites every chapter and keeps a version of each in the history.
 
 ## Python scripts
 
@@ -245,13 +277,7 @@ Every script has a **Preview** button which shows the lines it would change befo
 
 Edit, **Check** the syntax, **Test** on the current text, **New** and **Duplicate** (a delivered script is read-only: duplicate it to change it; the copy goes to `%AppData%\Binote\scripts` and replaces the delivered one of the same name). The contract of a script (properties, `Textcore` object) is described in [`binote-app/scripts/README_scripts.txt`](../binote-app/scripts/README_scripts.txt). Python 3.12 or later must be installed; it is only loaded when a script runs.
 
-## History, notes, names, statistics
-
-### History
-
-Each save keeps a version of the work, in `.src/history`, as the differences with the previous version (a whole text only from time to time), so that it stays small (**Tools > Add a version to the history** adds one by hand, and a preference saves one automatically every 90 seconds). **Tools > Change history** (Ctrl+H, or the last button of the toolbar) shows the differences between a chosen version (red) and the current text (green); **Restore this version** brings it back, **Delete** removes it, and *Differences only* shows only the lines which changed.
-
-![Change history](images/history.png)
+## Notes, names, statistics
 
 ### Notes
 
@@ -271,15 +297,9 @@ Each save keeps a version of the work, in `.src/history`, as the differences wit
 
 ![Statistics](images/statistics.png)
 
-## Versions (Git and Subversion)
-
-**File > Versions (Git / SVN)** detects a Git or Subversion working folder (the commands `git` or `svn` must be installed) and shows its branch and the changed files. The buttons: *Refresh*; *Update (pull / update)*; *Push*; *History of the file* and *Differences of the file* for the chapter which is open (*Update* saves the work first and reloads the chapter afterwards); and, below, a *Revision message* with *Commit*. A folder without a repository can be initialized with *Create a Git repository here*.
-
-The files of your project are the work, so they are what the window lists and commits. The hidden folder `.src` (the originals, `binote.json`, the notes, the history) is Binote's own data: it is **not listed and not committed**, unless you tick *Include the project data (.src) in the commits*. With Subversion, a new folder is added without its `.src`. After an *Update*, the list of the chapters is read again (new files appear) and the chapter on screen is loaded again; the originals stay as they were, so the chapters changed by the update get the green tag of the tree, and *Use the work as the original* (right click in the tree) takes the new version as the base.
-
 ## Export
 
-**File > Export** writes the work of all the chapters in one file, by default in the folder of the project (tick *Export the original (source) instead of the destination* for the original). The formats are PDF, Word, EPUB, HTML, Markdown and **plain text** (`.txt`, without any Markdown code).
+**File > Export** writes the work of all the chapters in one file, by default in the folder of the project (tick *Export the original instead of the work* for the original). The formats are PDF, Word, EPUB, HTML, Markdown and **plain text** (`.txt`, without any Markdown code).
 
 ![Export](images/export.png)
 
@@ -332,7 +352,7 @@ The sample projects are in [`sample-cjk`](sample-cjk) (see [`sample-cjk/CREDITS.
 | Shortcut | Action |
 | --- | --- |
 | Ctrl+O / Ctrl+Shift+O | Open a file / a folder |
-| Ctrl+S | Save the destination |
+| Ctrl+S | Save the work |
 | Ctrl+Z / Ctrl+Y | Undo / redo |
 | Ctrl+F / Ctrl+Shift+F / F3 | Find / find in all chapters / next match |
 | Ctrl+G | Go to a line or a paragraph |
@@ -375,6 +395,6 @@ A file or a folder given on the command line is opened at start (this is also wh
 | `grammar/` | `%AppData%\Binote` | your own languages for the grammar engine (optional) |
 | `SOMMAIRE.md` | project folder | the table of contents, when you ask for it |
 
-The original (source) files are never modified, except in the *Original* view when you tick *Edit*.
+The originals are never modified, except in the *Original* view when you tick *Edit*.
 
 More: [Architecture](ARCHITECTURE.md), [Building](BUILD.md), [Testing](TESTING.md), [Interface languages](LANGUAGES.md).

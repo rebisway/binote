@@ -92,11 +92,14 @@ namespace diff
 	Result compute(const std::vector<std::string>& src, const std::vector<std::string>& dst, const std::vector<std::pair<int, int>>& pins = std::vector<std::pair<int, int>>());
 
 	// Whole text, line by line (for the history): + / - lines
-	// ' ' same, '+' added, '-' removed. a_no / b_no: paragraph number (1-based) in the old / new text, 0 when the paragraph is not in it.
+	// ' ' same, '+' added, '-' removed. a_no / b_no: paragraph number in the old / new text, as the editor counts them (non blank lines, from 1);
+	// 0 for a blank line or when the line is not in that text.
 	// block: index of the change in blocks() (-1 outside of the changes). The numbers differ when paragraphs were added, removed or joined.
 	struct Line { char sign; std::string text; int a_no = 0; int b_no = 0; int block = -1; };
 	std::vector<Line> lines(const std::string& old_text, const std::string& new_text, bool only_changes);
 	std::vector<Block> blocks(const std::string& old_text, const std::string& new_text);
+	// The paragraphs which differ, numbered in the new text: "2-4, 9" ("7-": removed, numbered in the old text)
+	std::string changed_paragraphs(const std::string& old_text, const std::string& new_text);
 	// The new text where only one change (index in blocks()) goes back to the old text; everything else is kept
 	std::string revert_block(const std::string& old_text, const std::string& new_text, int block);
 }
@@ -122,7 +125,7 @@ public:
 		std::string path;
 		std::string label;							// "22/11/2026 16:55:03 - save"
 		long long size = 0;
-		std::string paras;							// paragraphs changed against the previous version: "12-14, 30" (empty for a full text)
+		std::string paras;							// paragraphs changed against the previous version: "12-14, 30" (empty for the first one)
 	};
 
 	// The history of the project is kept in its own folder (in .src), the documents are named by their path relative to base
